@@ -112,6 +112,13 @@ export const Taxes = () => {
         <h2>Taxes</h2>
       </header>
       <table className="records">
+        <thead>
+          <tr>
+            <th>name</th>
+            <th>rate</th>
+            <th>range</th>
+          </tr>
+        </thead>
         <tbody>
           {data.taxes.map((tax) => {
             const key: number = tax.id;
@@ -131,6 +138,10 @@ export const Taxes = () => {
                     <td key="name">{tax.name}</td>,
                     <td key="return" className="number">
                       {tax.rate || 0}%
+                    </td>,
+                    <td key="range">
+                      ${(tax.min || 0).toLocaleString()} - $
+                      {(tax.max || 0).toLocaleString()}
                     </td>,
                     <td key="controls">
                       <button onClick={startEditing(key)}>edit</button>

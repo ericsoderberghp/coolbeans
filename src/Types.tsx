@@ -1,5 +1,5 @@
 
-export type GlobalType = {
+export type GeneralType = {
   inflation: number;
   age: number;
   lifeExpectancy: number;
@@ -32,8 +32,8 @@ export type IncomeType = {
   id: number;
   name: string;
   value: number; // yearly
-  start?: string;
-  end?: string;
+  start?: string; // e.g. '2024-01-01'
+  stop?: string;
 };
 
 export type ExpenseType = {
@@ -41,7 +41,7 @@ export type ExpenseType = {
   name: string;
   value: number; // yearly
   start?: string;
-  end?: string;
+  stop?: string;
 };
 
 export type TaxType = {
@@ -56,7 +56,7 @@ export type TaxType = {
 
 export type DataType = {
   name?: string;
-  global: GlobalType;
+  general: GeneralType;
   accounts: AccountType[];
   investments: InvestmentType[];
   incomes: IncomeType[];

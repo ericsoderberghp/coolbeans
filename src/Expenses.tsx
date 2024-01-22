@@ -13,7 +13,11 @@ const formEventToExpense = (
     id: 0,
     name: formData.get("name") as string,
     value: formDataNumericValue(formData, "value"),
+    start: formData.get("start") as string,
+    stop: formData.get("stop") as string,
   };
+  if (!result.start) delete result.start;
+  if (!result.stop) delete result.stop;
   return result;
 };
 
@@ -40,6 +44,14 @@ const ExpenseForm = (props: ExpenseFormProps) => {
       <label>
         value
         <input name="value" type="number" defaultValue={expense.value} />
+      </label>
+      <label>
+        start
+        <input name="start" type="date" defaultValue={expense.start} />
+      </label>
+      <label>
+        stop
+        <input name="stop" type="date" defaultValue={expense.stop} />
       </label>
       <footer>
         <button type="submit">save</button>
@@ -101,6 +113,13 @@ export const Expenses = () => {
         <h2>Expenses</h2>
       </header>
       <table className="records">
+        <thead>
+          <tr>
+            <th>name</th>
+            <th>yearly value</th>
+            <th>effective</th>
+          </tr>
+        </thead>
         <tbody>
           {data.expenses.map((expense) => {
             const key: number = expense.id;
@@ -121,6 +140,7 @@ export const Expenses = () => {
                     <td key="value" className="number">{`$${(
                       expense.value || 0
                     ).toLocaleString()}`}</td>,
+                    <td key="effective">{expense.start} - {expense.stop}</td>,
                     <td key="controls">
                       <button onClick={startEditing(key)}>edit</button>
                     </td>,

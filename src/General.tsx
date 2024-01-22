@@ -1,15 +1,15 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "./AppContext";
-import { GlobalType } from "./Types";
+import { GeneralType } from "./Types";
 
 const formDataNumericValue = (formData: FormData, name: string) =>
   parseFloat((formData.get(name) as string) ?? "");
 
-const formEventToGlobal = (
+const formEventToGeneral = (
   event: React.FormEvent<HTMLFormElement>
-): GlobalType => {
+): GeneralType => {
   const formData = new FormData(event.currentTarget);
-  const result: GlobalType = {
+  const result: GeneralType = {
     inflation: formDataNumericValue(formData, "inflation"),
     age: formDataNumericValue(formData, "age"),
     lifeExpectancy: formDataNumericValue(formData, "lifeExpectancy"),
@@ -17,13 +17,13 @@ const formEventToGlobal = (
   return result;
 };
 
-type GlobalFormProps = {
-  global: GlobalType;
+type GeneralFormProps = {
+  general: GeneralType;
   onCancel: React.MouseEventHandler<HTMLButtonElement>;
   onSubmit: React.FormEventHandler<HTMLFormElement>;
 };
 
-const GlobalForm = (props: GlobalFormProps) => {
+const GeneralForm = (props: GeneralFormProps) => {
   const { onCancel, onSubmit } = props;
   return (
     <form onSubmit={onSubmit}>
@@ -35,21 +35,21 @@ const GlobalForm = (props: GlobalFormProps) => {
             className="percent"
             type="number"
             step="0.01"
-            defaultValue={props.global.inflation}
+            defaultValue={props.general.inflation}
           />
           %
         </span>
       </label>
       <label>
         age
-        <input name="age" type="number" defaultValue={props.global.age} />
+        <input name="age" type="number" defaultValue={props.general.age} />
       </label>
       <label>
         life expectancy
         <input
           name="lifeExpectancy"
           type="number"
-          defaultValue={props.global.lifeExpectancy}
+          defaultValue={props.general.lifeExpectancy}
         />
       </label>
       <footer>
@@ -60,7 +60,7 @@ const GlobalForm = (props: GlobalFormProps) => {
   );
 };
 
-export const Global = () => {
+export const General = () => {
   const { data, updateData } = useContext(AppContext);
   const [editing, setEditing] = useState(false);
 
@@ -69,7 +69,7 @@ export const Global = () => {
   const update = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     updateData((nextData) => {
-      nextData.global = formEventToGlobal(event);
+      nextData.general = formEventToGeneral(event);
     });
     setEditing(false);
   };
@@ -77,7 +77,7 @@ export const Global = () => {
   return (
     <div>
       <header>
-        <h2>Global</h2>
+        <h2>General</h2>
       </header>
       <table className="records">
         <thead>
@@ -91,8 +91,8 @@ export const Global = () => {
           <tr>
             {editing ? (
               <td colSpan={4}>
-                <GlobalForm
-                  global={data.global}
+                <GeneralForm
+                  general={data.general}
                   onSubmit={update}
                   onCancel={() => setEditing(false)}
                 />
@@ -100,13 +100,13 @@ export const Global = () => {
             ) : (
               [
                 <td key="inflation" className="number">
-                  {data.global.inflation}%
+                  {data.general.inflation}%
                 </td>,
                 <td key="age" className="number">
-                  {data.global.age}
+                  {data.general.age}
                 </td>,
                 <td key="lifeExpectancy" className="number">
-                  {data.global.lifeExpectancy}
+                  {data.general.lifeExpectancy}
                 </td>,
                 <td key="controls">
                   <button onClick={startEditing}>edit</button>

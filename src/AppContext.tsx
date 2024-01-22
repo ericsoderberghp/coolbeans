@@ -7,7 +7,7 @@ export type AppContextType = {
 }
 
 export const initialData: DataType = {
-  global: { inflation: 0.04, age: 55, lifeExpectancy: 95 },
+  general: { inflation: 0.04, age: 55, lifeExpectancy: 95 },
   accounts: [],
   investments: [],
   incomes: [],

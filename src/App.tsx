@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
 import { AppContext, initialData } from "./AppContext";
 import { DataType, InvestmentType } from "./Types";
-import { Global } from "./Global";
+import { General } from "./General";
 import { Accounts } from "./Accounts";
 import { Investments } from "./Investments";
 import { Incomes } from "./Incomes";
@@ -10,14 +10,16 @@ import { Taxes } from "./Taxes";
 import { Expenses } from "./Expenses";
 
 // TODO:
-// - implement income and expense dates, start with just year
-// - Social Security
+// - styling
+// - re-design how Projections are structured to allow styling cues such as
+//   when an investment or account starts and stops being drawn
+// - handle taxes on IRA withdrawls
+// - handle taxes on capital gains from investments
+// - multiple data sets, to allow showing different scenarios
 // - implement asset classes?
 // - use API to get current stock prices
-// - multiple data sets, to allow showing different scenarios
 // - invest extra income
 // - Medicare
-// - styling
 // - branding
 // - charts
 // - slider controls to adjust values and watch projections change in real time
@@ -26,8 +28,10 @@ import { Expenses } from "./Expenses";
 type ProjectionType = {
   year: number;
   age: number;
-  accountValues: number[];
+  accountValues: number[]; // indexes match data.accounts
   investmentValues: number[]; // indexes match data.investments
+  incomeValues: number[]; // indexes match data.incomes
+  expenseValues: number[]; // indexes match data.expenses
   dividends: number;
   income: number;
   taxes: number;
@@ -48,31 +52,50 @@ const isQualified = (data: DataType, investment: InvestmentType) => {
   return account && account.qualified;
 };
 
+const within = (year: number, start?: string, stop?: string) => {
+  const midYear = `${year}-07-01`;
+  if (start && start > midYear) return false;
+  if (stop && stop < midYear) return false;
+  return true;
+};
+
 function App() {
   const [data, setData] = useState(initialData);
 
   const projections: ProjectionType[] = useMemo(() => {
-    const year = new Date().getFullYear();
+    const startYear = new Date().getFullYear();
     const result = [];
 
     // initialize the first year based on current values
     let prior: ProjectionType = {
-      year,
-      age: data.global.age,
+      year: startYear,
+      age: data.general.age,
       accountValues: data.accounts.map((a) => a.value || 0),
       investmentValues: data.investments.map(
         (i) => (i.shares && i.price && i.shares * i.price) || 0
       ),
+      incomeValues: data.incomes.map(
+        (income) =>
+          (within(startYear, income.start, income.stop) && income.value) || 0
+      ),
+      expenseValues: data.expenses.map(
+        (expense) =>
+          (within(startYear, expense.start, expense.stop) && expense.value) || 0
+      ),
       dividends: 0,
-      income: data.incomes.reduce((tot, income) => tot + income.value, 0),
+      income: 0,
       taxes: 0,
-      expenses: data.expenses.reduce((tot, expense) => tot + expense.value, 0),
+      expenses: 0,
       delta: 0,
     };
+    prior.income = prior.incomeValues.reduce((tot, value) => tot + value, 0);
+    prior.expenses = prior.expenseValues.reduce((tot, value) => tot + value, 0);
     result.push(prior);
 
     // project future years
-    while (prior.age < data.global.lifeExpectancy) {
+    while (prior.age < data.general.lifeExpectancy) {
+      const year = prior.year + 1;
+
       // dividends from the prior year's values
       const investmentDividends = prior.investmentValues.map(
         (value, index) =>
@@ -103,12 +126,31 @@ function App() {
             0)
       );
 
-      // account for inflation in income and expenses
-      const income = incrementByPercentage(prior.income, data.global.inflation);
-      const expenses = incrementByPercentage(
-        prior.expenses,
-        data.global.inflation
-      );
+      const incomeValues = prior.incomeValues.map((value, index) => {
+        const income = data.incomes[index];
+        if (within(year, income.start, income.stop)) {
+          // if we've started using an income already, increment it by inflation
+          if (value) return incrementByPercentage(value, data.general.inflation);
+          // we haven't used it yet, start using it
+          return income.value || 0;
+        }
+        // if this income is not in range of the current year, zero it
+        return 0;
+      });
+      const income = incomeValues.reduce((tot, value) => tot + value, 0);
+
+      const expenseValues = prior.expenseValues.map((value, index) => {
+        const expense = data.expenses[index];
+        if (within(year, expense.start, expense.stop)) {
+          // if we've started using an expense already, increment it by inflation
+          if (value) return incrementByPercentage(value, data.general.inflation);
+          // we haven't used it yet, start using it
+          return expense.value || 0;
+        }
+        // if this expense is not in range of the current year, zero it
+        return 0;
+      });
+      const expenses = expenseValues.reduce((tot, value) => tot + value, 0);
 
       // determine the tax for the adjusted gross income
       const adjustedGrossIncome = dividends + income;
@@ -167,17 +209,17 @@ function App() {
             }
           }
         }
-
-        // if we still have shortfall, pull from accounts
       } else {
         // TODO: handle more income than taxes + expenses by investing
       }
 
       const current: ProjectionType = {
-        year: prior.year + 1,
+        year,
         age: prior.age + 1,
         accountValues,
         investmentValues,
+        incomeValues,
+        expenseValues,
         dividends,
         income,
         taxes,
@@ -197,8 +239,12 @@ function App() {
     if (buffer) {
       const data = JSON.parse(buffer);
       // upgrades
-      if (!data.global)
-        data.global = { inflation: 0.04, age: 55, lifeExpectancy: 95 };
+      if (!data.general) {
+        data.general = data.global;
+        delete data.global;
+      }
+      // if (!data.global)
+      //   data.global = { inflation: 0.04, age: 55, lifeExpectancy: 95 };
       // if (!data.taxes) data.taxes = [];
       setData(data);
     }
@@ -226,7 +272,7 @@ function App() {
           <h1>Cool Beans</h1>
         </header>
 
-        <Global />
+        <General />
         <Accounts />
         <Investments />
         <Incomes />
@@ -236,6 +282,7 @@ function App() {
         <header>
           <h2>Projection</h2>
         </header>
+        {/* <div>within {JSON.stringify(within(2038, '2037-01-01', ''))}</div> */}
         <table className="years">
           <thead>
             <tr>
@@ -243,8 +290,15 @@ function App() {
               <th>age</th>
               <th>delta</th>
               <th>expenses</th>
+              {data.expenses.length > 1 &&
+                data.expenses.map((expense) => (
+                  <th key={expense.id}>{expense.name}</th>
+                ))}
               <th>taxes</th>
               <th>income</th>
+              {data.incomes.map((income) => (
+                <th key={income.id}>{income.name}</th>
+              ))}
               <th>dividends</th>
               {data.investments.map((investment) => (
                 <th key={investment.id}>{investment.name}</th>
@@ -265,12 +319,23 @@ function App() {
                 <td className="number">
                   ${Math.round(projection.expenses).toLocaleString()}
                 </td>
+                {data.expenses.length > 1 &&
+                  projection.expenseValues.map((value, index) => (
+                    <td key={index} className="number">
+                      ${Math.round(value).toLocaleString()}
+                    </td>
+                  ))}
                 <td className="number">
                   ${Math.round(projection.taxes).toLocaleString()}
                 </td>
                 <td className="number">
                   ${Math.round(projection.income).toLocaleString()}
                 </td>
+                {projection.incomeValues.map((value, index) => (
+                  <td key={index} className="number">
+                    ${Math.round(value).toLocaleString()}
+                  </td>
+                ))}
                 <td className="number">
                   ${Math.round(projection.dividends).toLocaleString()}
                 </td>

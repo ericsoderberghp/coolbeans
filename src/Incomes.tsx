@@ -13,6 +13,8 @@ const formEventToIncome = (
     id: 0,
     name: formData.get("name") as string,
     value: formDataNumericValue(formData, "value"),
+    start: formData.get("start") as string,
+    stop: formData.get("stop") as string,
   };
   return result;
 };
@@ -40,6 +42,14 @@ const IncomeForm = (props: IncomeFormProps) => {
       <label>
         value
         <input name="value" type="number" defaultValue={income.value} />
+      </label>
+      <label>
+        start
+        <input name="start" type="date" defaultValue={income.start} />
+      </label>
+      <label>
+        stop
+        <input name="stop" type="date" defaultValue={income.stop} />
       </label>
       <footer>
         <button type="submit">save</button>
@@ -101,6 +111,13 @@ export const Incomes = () => {
         <h2>Income</h2>
       </header>
       <table className="records">
+        <thead>
+          <tr>
+            <th>name</th>
+            <th>yearly value</th>
+            <th>effective</th>
+          </tr>
+        </thead>
         <tbody>
           {data.incomes.map((income) => {
             const key: number = income.id;
@@ -121,6 +138,7 @@ export const Incomes = () => {
                     <td key="value" className="number">{`$${(
                       income.value || 0
                     ).toLocaleString()}`}</td>,
+                    <td key="effective">{income.start} - {income.stop}</td>,
                     <td key="controls">
                       <button onClick={startEditing(key)}>edit</button>
                     </td>,

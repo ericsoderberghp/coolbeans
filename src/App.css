@@ -5,8 +5,8 @@ body {
 }
 
 main {
-  max-width: calc(var(--size) * 24);
-  margin: 1em auto;
+  /* max-width: calc(var(--size) * 24); */
+  margin: 1em 2em;
 }
 
 header, footer {
