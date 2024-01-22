@@ -1,0 +1,63 @@
+
+body {
+  --size: 24px;
+  --half-size: calc(var(--size) / 2);
+}
+
+main {
+  max-width: calc(var(--size) * 24);
+  margin: 1em auto;
+}
+
+header, footer {
+  display: flex;
+  flex-flow: row;
+  align-items: center;
+  gap: var(--size);
+}
+
+label {
+  display: flex;
+  flex-flow: row;
+  align-items: center;
+  gap: var(--size);
+  margin-bottom: var(--half-size);
+}
+
+input[type=number] {
+  font-variant-numeric: tabular-nums;
+  text-align:right;
+  width: 10em;
+}
+
+input.percent {
+  width: 4em;
+}
+
+ul, ol {
+  margin: 0;
+  padding: 0;
+}
+
+table.records td {
+  padding-right: 1em;
+}
+
+td.number {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+form {
+  border: 1px solid grey;
+  border-radius: 0.25em;
+  padding: 1em;
+}
+
+form footer {
+  justify-content: space-between;
+}
+
+table.years td, table.years th {
+  padding-right: 1em;
+}
