@@ -112,6 +112,7 @@ export const Expenses = () => {
       <header>
         <h2>Expenses</h2>
       </header>
+      {!!data.expenses.length && (
       <table className="records">
         <thead>
           <tr>
@@ -151,6 +152,7 @@ export const Expenses = () => {
           })}
         </tbody>
       </table>
+      )}
       {adding ? (
         <ExpenseForm onSubmit={add} onCancel={() => setAdding(false)} />
       ) : (

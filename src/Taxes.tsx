@@ -111,48 +111,59 @@ export const Taxes = () => {
       <header>
         <h2>Taxes</h2>
       </header>
-      <table className="records">
-        <thead>
-          <tr>
-            <th>name</th>
-            <th>rate</th>
-            <th>range</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.taxes.map((tax) => {
-            const key: number = tax.id;
-            return (
-              <tr key={key}>
-                {editing === key ? (
-                  <td colSpan={4}>
-                    <TaxForm
-                      tax={tax}
-                      onSubmit={update(key)}
-                      onCancel={() => setEditing(0)}
-                      onDelete={delet(key)}
-                    />
-                  </td>
-                ) : (
-                  [
-                    <td key="name">{tax.name}</td>,
-                    <td key="return" className="number">
-                      {tax.rate || 0}%
-                    </td>,
-                    <td key="range">
-                      ${(tax.min || 0).toLocaleString()} - $
-                      {(tax.max || 0).toLocaleString()}
-                    </td>,
-                    <td key="controls">
-                      <button onClick={startEditing(key)}>edit</button>
-                    </td>,
-                  ]
-                )}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      {!!data.taxes.length && (
+        <table className="records">
+          <thead>
+            <tr>
+              <th>name</th>
+              <th className="number">rate</th>
+              <th className="number">min</th>
+              <th className="number">max</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.taxes.map((tax) => {
+              const key: number = tax.id;
+              const forName = data.taxes.filter((t) => t.name === tax.name);
+              const nameCount = forName.length;
+              return (
+                <tr key={key}>
+                  {editing === key ? (
+                    <td colSpan={4}>
+                      <TaxForm
+                        tax={tax}
+                        onSubmit={update(key)}
+                        onCancel={() => setEditing(0)}
+                        onDelete={delet(key)}
+                      />
+                    </td>
+                  ) : (
+                    [
+                      forName[0].id === tax.id ? (
+                        <td key="name" rowSpan={nameCount}>
+                          {tax.name}
+                        </td>
+                      ) : null,
+                      <td key="return" className="number">
+                        {tax.rate || 0}%
+                      </td>,
+                      <td key="min" className="number">
+                        ${(tax.min || 0).toLocaleString()}
+                      </td>,
+                      <td key="max" className="number">
+                        ${(tax.max || 0).toLocaleString()}
+                      </td>,
+                      <td key="controls">
+                        <button onClick={startEditing(key)}>edit</button>
+                      </td>,
+                    ]
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
       {adding ? (
         <TaxForm onSubmit={add} onCancel={() => setAdding(false)} />
       ) : (

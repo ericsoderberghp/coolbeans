@@ -1,0 +1,17 @@
+TODO:
+- restructure taxes to have name contain rates
+- show per-tax name projections
+- styling
+- re-design how Projections are structured to allow styling cues such as
+  when an investment or account starts and stops being drawn
+- handle qualified vs. non-qualified dividends w.r.t. taxes
+- handle taxes on qualified (IRA) withdrawls
+- handle taxes on capital gains from investments
+- multiple data sets, to allow showing different scenarios
+- implement asset classes?
+- invest extra income
+- use API to get current stock prices
+- Medicare
+- charts
+- slider controls to adjust values and watch projections change in real time
+   perhaps a "focused" number?

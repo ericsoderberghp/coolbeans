@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import { AppContext } from "./AppContext";
 import { AccountType, InvestmentType, DataType } from "./Types";
 
@@ -86,6 +86,14 @@ export const Accounts = () => {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(0);
 
+  const sortedAccounts = useMemo(
+    () =>
+      data.accounts.sort(
+        (a1, a2) => (a1.priority || 0) - (a2.priority || 0)
+      ),
+    [data]
+  );
+
   const startAdding = () => setAdding(!adding);
 
   const startEditing = (id: number) => () => setEditing(id);
@@ -131,17 +139,18 @@ export const Accounts = () => {
       <header>
         <h2>Accounts</h2>
       </header>
+      {!!data.accounts.length && (
       <table className="records">
         <thead>
           <tr>
             <th>name</th>
-            <th>value</th>
-            <th>return</th>
-            <th>priority</th>
+            <th className="number">value</th>
+            <th className="number">return</th>
+            <th className="number">priority</th>
           </tr>
         </thead>
         <tbody>
-          {data.accounts.map((account) => {
+          {sortedAccounts.map((account) => {
             const key: number = account.id;
             const investmentsValue = data.investments
               .filter(
@@ -185,6 +194,7 @@ export const Accounts = () => {
           })}
         </tbody>
       </table>
+      )}
       {adding ? (
         <AccountForm onSubmit={add} onCancel={() => setAdding(false)} />
       ) : (

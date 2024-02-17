@@ -110,6 +110,7 @@ export const Incomes = () => {
       <header>
         <h2>Income</h2>
       </header>
+      {!!data.incomes.length && (
       <table className="records">
         <thead>
           <tr>
@@ -149,6 +150,7 @@ export const Incomes = () => {
           })}
         </tbody>
       </table>
+      )}
       {adding ? (
         <IncomeForm onSubmit={add} onCancel={() => setAdding(false)} />
       ) : (

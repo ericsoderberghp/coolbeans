@@ -179,6 +179,7 @@ export const Investments = () => {
       <header>
         <h2>Investments</h2>
       </header>
+      {!!data.investments.length && (
       <table className="records">
         <thead>
           <tr>
@@ -236,6 +237,7 @@ export const Investments = () => {
           })}
         </tbody>
       </table>
+      )}
       {adding ? (
         <InvestmentForm onSubmit={add} onCancel={() => setAdding(false)} />
       ) : (
