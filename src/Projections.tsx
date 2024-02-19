@@ -1,34 +1,40 @@
 import React, { useContext, useMemo, useState } from "react";
 import { AppContext } from "./AppContext";
-import { DataType, InvestmentType } from "./Types";
+import { AccountType, ExpenseType, IncomeType, InvestmentType } from "./Types";
 
 type ProjectionType = {
   year: number;
   age: number;
-  accountValues: number[]; // indexes match data.accounts
-  investmentValues: number[]; // indexes match data.investments
-  incomeValues: number[]; // indexes match data.incomes
-  expenseValues: number[]; // indexes match data.expenses
+  accounts: {
+    account: AccountType;
+    value: number;
+    investments: {
+      investment: InvestmentType;
+      value: number;
+      dividends: number;
+    }[];
+  }[];
+  incomes: {
+    income: IncomeType;
+    value: number;
+  }[];
+  expenses: {
+    expense: ExpenseType;
+    value: number;
+  }[];
   assets: number;
-  dividends: number;
+  // dividends: number;
   income: number;
-  taxes: number;
-  expenses: number;
+  tax: number;
+  expense: number;
   delta: number;
 };
 
+const percentageOf = (value: number, percentage: number = 0) =>
+  (value * percentage) / 100;
+
 const incrementByPercentage = (value: number, percentage: number = 0) =>
   value + (value * percentage) / 100;
-
-const accountForInvestment = (data: DataType, investment: InvestmentType) =>
-  investment.account
-    ? data.accounts.find((account) => account.id === investment.account)
-    : undefined;
-
-const isQualified = (data: DataType, investment: InvestmentType) => {
-  const account = accountForInvestment(data, investment);
-  return account && account.qualified;
-};
 
 const within = (year: number, start?: string, stop?: string) => {
   const midYear = `${year}-07-01`;
@@ -49,147 +55,175 @@ export const Projections = () => {
     let prior: ProjectionType = {
       year: startYear,
       age: data.general.age,
-      accountValues: data.accounts.map((a) => a.value || 0),
-      investmentValues: data.investments.map(
-        (i) => (i.shares && i.price && i.shares * i.price) || 0
-      ),
-      incomeValues: data.incomes.map(
-        (income) =>
-          (within(startYear, income.start, income.stop) && income.value) || 0
-      ),
-      expenseValues: data.expenses.map(
-        (expense) =>
-          (within(startYear, expense.start, expense.stop) && expense.value) || 0
-      ),
+      accounts: data.accounts.map((account) => {
+        const investments = account.investments.map((investment) => ({
+          investment,
+          value:
+            (investment.shares &&
+              investment.price &&
+              investment.shares * investment.price) ||
+            0,
+          dividends: 0,
+        }));
+        return {
+          account,
+          value:
+            account.value || // if account has no value, sum investment values
+            investments
+              .map((i) => i.value)
+              .reduce((tot, value) => tot + value, 0) ||
+            0,
+          investments,
+        };
+      }),
+      incomes: data.incomes.map((income) => ({
+        income,
+        value:
+          (within(startYear, income.start, income.stop) && income.value) || 0,
+      })),
+      expenses: data.expenses.map((expense) => ({
+        expense,
+        value:
+          (within(startYear, expense.start, expense.stop) && expense.value) ||
+          0,
+      })),
       assets: 0,
-      dividends: 0,
+      // dividends: 0,
       income: 0,
-      taxes: 0,
-      expenses: 0,
+      tax: 0,
+      expense: 0,
       delta: 0,
     };
-    prior.assets = prior.accountValues.reduce((tot, value) => tot + value, 0);
-    prior.income = prior.incomeValues.reduce((tot, value) => tot + value, 0);
-    prior.expenses = prior.expenseValues.reduce((tot, value) => tot + value, 0);
+
+    prior.assets = prior.accounts
+      .map((a) => a.value)
+      .reduce((tot, value) => tot + value, 0);
+    prior.income = prior.incomes
+      .map((i) => i.value)
+      .reduce((tot, value) => tot + value, 0);
+    prior.expense = prior.expenses
+      .map((e) => e.value)
+      .reduce((tot, value) => tot + value, 0);
+
     result.push(prior);
 
     // project future years
-    while (prior.age < data.general.lifeExpectancy) {
+    while (prior.age < data.general.until) {
       const year = prior.year + 1;
 
-      // dividends from the prior year's values
-      const investmentDividends = prior.investmentValues.map(
-        (value, index) =>
-          (value * (data.investments[index].dividend || 0)) / 100
-      );
+      // calculate account and investment performance
+      const accounts = prior.accounts.map((a) => {
+        const account = a.account;
+        const investments = a.investments.map((i) => {
+          const investment = i.investment;
+          // dividends from the prior year's values
+          const dividends = incrementByPercentage(i.value, investment.dividend);
+          // returns from the prior year's values
+          const returns = incrementByPercentage(i.value, investment.return);
+          return {
+            investment,
+            value: returns + dividends, // re-invest for now
+            dividends,
+          };
+        });
+        const dividends = investments
+          .map((i) => i.dividends)
+          .reduce((tot, value) => tot + value, 0);
+        return {
+          account,
+          value: incrementByPercentage(a.value, account.return),
+          dividends,
+          investments,
+        };
+      });
 
-      // total dividends from prior year
-      const dividends = investmentDividends.reduce((tot, val) => tot + val, 0);
+      const assets = accounts
+        .map(
+          (a) =>
+            a.value +
+            a.investments
+              .map((i) => i.value)
+              .reduce((tot, value) => tot + value, 0)
+        )
+        .reduce((tot, value) => tot + value, 0);
 
-      // returns from the prior year's values
-      const accountReturns = prior.accountValues.map((value, index) =>
-        incrementByPercentage(value, data.accounts[index].return)
-      );
-      const investmentReturns = prior.investmentValues.map((value, index) =>
-        incrementByPercentage(value, data.investments[index].return)
-      );
+      const nonQualifiedDividends = accounts
+        .map((a) => (!a.account.qualified && a.dividends) || 0)
+        .reduce((tot, value) => tot + value, 0);
 
-      // current values account for returns and re-invested
-      // dividends for qualified accounts
-      const accountValues = prior.accountValues.map(
-        (value, index) => accountReturns[index]
-      );
-      const investmentValues = prior.investmentValues.map(
-        (value, index) =>
-          investmentReturns[index] +
-          ((isQualified(data, data.investments[index]) &&
-            investmentDividends[index]) ||
-            0)
-      );
-      const assets = accountValues.reduce((tot, value) => tot + value, 0);
-
-      const incomeValues = prior.incomeValues.map((value, index) => {
-        const income = data.incomes[index];
+      const incomes = prior.incomes.map((i) => {
+        const income = i.income;
+        let value = i.value;
         if (within(year, income.start, income.stop)) {
           // if we've started using an income already, increment it by inflation
           if (value)
-            return incrementByPercentage(value, data.general.inflation);
+            value = incrementByPercentage(value, data.general.inflation);
           // we haven't used it yet, start using it
-          return income.value || 0;
+          else value = income.value || 0;
+        } else {
+          // if this income is not in range of the current year, zero it
+          value = 0;
         }
-        // if this income is not in range of the current year, zero it
-        return 0;
+        return { income, value };
       });
-      const income = incomeValues.reduce((tot, value) => tot + value, 0);
 
-      const expenseValues = prior.expenseValues.map((value, index) => {
-        const expense = data.expenses[index];
+      const income = incomes
+        .map((i) => i.value)
+        .reduce((tot, value) => tot + value, 0);
+
+      const expenses = prior.expenses.map((e) => {
+        const expense = e.expense;
+        let value = e.value;
         if (within(year, expense.start, expense.stop)) {
           // if we've started using an expense already, increment it by inflation
           if (value)
-            return incrementByPercentage(value, data.general.inflation);
+            value = incrementByPercentage(value, data.general.inflation);
           // we haven't used it yet, start using it
-          return expense.value || 0;
+          else value = expense.value || 0;
+        } else {
+          // if this expense is not in range of the current year, zero it
+          value = 0;
         }
-        // if this expense is not in range of the current year, zero it
-        return 0;
+        return { expense, value };
       });
-      const expenses = expenseValues.reduce((tot, value) => tot + value, 0);
+
+      const expense = expenses
+        .map((e) => e.value)
+        .reduce((tot, value) => tot + value, 0);
 
       // determine the tax for the adjusted gross income
-      const adjustedGrossIncome = dividends + income;
-      const tax = data.taxes.find(
-        (tax) =>
-          (tax.min || 0) < adjustedGrossIncome &&
-          (!tax.max || tax.max > adjustedGrossIncome)
-      );
-      const taxes = tax ? (adjustedGrossIncome * tax.rate) / 100 : 0;
+      const adjustedGrossIncome = nonQualifiedDividends + income;
+      const taxes = data.taxes.map((tax) => {
+        const rate = tax.rates.find(
+          (rate) =>
+            (rate.min || 0) < adjustedGrossIncome &&
+            (!rate.max || rate.max > adjustedGrossIncome)
+        );
+        const value = percentageOf(adjustedGrossIncome, rate?.rate || 0);
+        return { tax, rate, value };
+      });
+      const tax = taxes
+        .map((t) => t.value)
+        .reduce((tot, value) => tot + value, 0);
 
-      const delta = income - (taxes + expenses);
+      const delta = income - (tax + expense);
       if (delta < 0) {
         let shortfall = Math.abs(delta);
 
-        // pull from principle, starting from lowest priority
-        const availableInvestments = data.investments
-          .map(({ priority }, index) => ({
-            index,
-            priority: priority || 0,
-            value: investmentValues[index],
-          }))
-          .filter(({ priority, value }) => value && priority)
-          .sort(({ priority: p1 }, { priority: p2 }) => p2 - p1);
-        const availableAccounts = data.accounts
-          .map(({ priority }, index) => ({
-            index,
-            priority: priority || 0,
-            value: accountValues[index],
-          }))
-          .filter(({ priority, value }) => value && priority)
-          .sort(({ priority: p1 }, { priority: p2 }) => p2 - p1);
+        // pull from assets, starting from lowest priority
+        const orderedAccounts = accounts.toSorted(
+          (a1, a2) => (a1.account.priority || 0) - (a2.account.priority || 0)
+        );
 
-        while (
-          shortfall &&
-          (availableInvestments.length || availableAccounts.length)
-        ) {
-          const available = availableInvestments.shift();
-          if (available) {
-            if (shortfall < available.value) {
-              investmentValues[available.index] -= shortfall;
+        while (shortfall && orderedAccounts.length) {
+          const acc = orderedAccounts.shift();
+          if (acc) {
+            if (shortfall < acc.value) {
+              acc.value -= shortfall;
               shortfall = 0;
             } else {
-              shortfall -= investmentValues[available.index];
-              investmentValues[available.index] = 0;
-            }
-          } else {
-            const available = availableAccounts.shift();
-            if (available) {
-              if (shortfall < available.value) {
-                accountValues[available.index] -= shortfall;
-                shortfall = 0;
-              } else {
-                shortfall -= accountValues[available.index];
-                accountValues[available.index] = 0;
-              }
+              shortfall -= acc.value;
+              acc.value = 0;
             }
           }
         }
@@ -200,15 +234,14 @@ export const Projections = () => {
       const current: ProjectionType = {
         year,
         age: prior.age + 1,
-        accountValues,
-        investmentValues,
-        incomeValues,
-        expenseValues,
-        assets,
-        dividends,
-        income,
-        taxes,
+        accounts,
+        incomes,
         expenses,
+        assets,
+        // dividends,
+        income,
+        tax,
+        expense,
         delta,
       };
       result.push(current);
@@ -245,16 +278,15 @@ export const Projections = () => {
               data.incomes.map((income) => (
                 <th key={income.id}>{income.name}</th>
               ))}
-            <th className="number">dividends</th>
+            {/* <th className="number">dividends</th> */}
             <th className="number">assets</th>
             {expanded &&
-              data.accounts.map((account) => (
-                <th key={account.id}>{account.name}</th>
-              ))}
-            {expanded &&
-              data.investments.map((investment) => (
-                <th key={investment.id}>{investment.name}</th>
-              ))}
+              data.accounts.map((account) => [
+                <th key={account.id}>{account.name}</th>,
+                account.investments.map((investment) => (
+                  <th key={investment.id}>{investment.name}</th>
+                )),
+              ])}
           </tr>
         </thead>
         <tbody>
@@ -266,45 +298,46 @@ export const Projections = () => {
                 ${Math.round(projection.delta).toLocaleString()}
               </td>
               <td className="number">
-                ${Math.round(projection.expenses).toLocaleString()}
+                ${Math.round(projection.expense).toLocaleString()}
               </td>
               {expanded &&
                 data.expenses.length > 1 &&
-                projection.expenseValues.map((value, index) => (
-                  <td key={index} className="number">
+                projection.expenses.map(({ expense: { id }, value }) => (
+                  <td key={id} className="number">
                     ${Math.round(value).toLocaleString()}
                   </td>
                 ))}
               <td className="number">
-                ${Math.round(projection.taxes).toLocaleString()}
+                ${Math.round(projection.tax).toLocaleString()}
               </td>
               <td className="number">
                 ${Math.round(projection.income).toLocaleString()}
               </td>
               {expanded &&
-                projection.incomeValues.map((value, index) => (
-                  <td key={index} className="number">
+                projection.incomes.map(({ income: { id }, value }) => (
+                  <td key={id} className="number">
                     ${Math.round(value).toLocaleString()}
                   </td>
                 ))}
-              <td className="number">
+              {/* <td className="number">
                 ${Math.round(projection.dividends).toLocaleString()}
-              </td>
+              </td> */}
               <td className="number">
                 ${Math.round(projection.assets).toLocaleString()}
               </td>
               {expanded &&
-                projection.accountValues.map((value, index) => (
-                  <td key={index} className="number">
-                    ${Math.round(value).toLocaleString()}
-                  </td>
-                ))}
-              {expanded &&
-                projection.investmentValues.map((value, index) => (
-                  <td key={index} className="number">
-                    ${Math.round(value).toLocaleString()}
-                  </td>
-                ))}
+                projection.accounts.map(
+                  ({ account: { id }, value, investments }) => [
+                    <td key={id} className="number">
+                      ${Math.round(value).toLocaleString()}
+                    </td>,
+                    investments.map(({ investment: { id }, value }) => (
+                      <td key={id} className="number">
+                        ${Math.round(value).toLocaleString()}
+                      </td>
+                    )),
+                  ]
+                )}
             </tr>
           ))}
         </tbody>

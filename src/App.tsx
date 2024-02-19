@@ -4,7 +4,6 @@ import { AppContext, initialData } from "./AppContext";
 import { DataType } from "./Types";
 import { General } from "./General";
 import { Accounts } from "./Accounts";
-import { Investments } from "./Investments";
 import { Incomes } from "./Incomes";
 import { Taxes } from "./Taxes";
 import { Expenses } from "./Expenses";
@@ -89,7 +88,6 @@ function App() {
         <General />
         <Expenses />
         <Accounts />
-        <Investments />
         <Incomes />
         <Taxes />
         <Projections />

@@ -12,7 +12,7 @@ const formEventToGeneral = (
   const result: GeneralType = {
     inflation: formDataNumericValue(formData, "inflation"),
     age: formDataNumericValue(formData, "age"),
-    lifeExpectancy: formDataNumericValue(formData, "lifeExpectancy"),
+    until: formDataNumericValue(formData, "until"),
   };
   return result;
 };
@@ -45,11 +45,11 @@ const GeneralForm = (props: GeneralFormProps) => {
         <input name="age" type="number" defaultValue={props.general.age} />
       </label>
       <label>
-        life expectancy
+        until
         <input
-          name="lifeExpectancy"
+          name="until"
           type="number"
-          defaultValue={props.general.lifeExpectancy}
+          defaultValue={props.general.until}
         />
       </label>
       <footer>
@@ -84,7 +84,7 @@ export const General = () => {
           <tr>
             <th>inflation</th>
             <th>age</th>
-            <th>life expectancy</th>
+            <th>until</th>
           </tr>
         </thead>
         <tbody>
@@ -105,8 +105,8 @@ export const General = () => {
                 <td key="age" className="number">
                   {data.general.age}
                 </td>,
-                <td key="lifeExpectancy" className="number">
-                  {data.general.lifeExpectancy}
+                <td key="until" className="number">
+                  {data.general.until}
                 </td>,
                 <td key="controls">
                   <button onClick={startEditing}>edit</button>

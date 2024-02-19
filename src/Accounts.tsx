@@ -1,6 +1,6 @@
 import React, { useContext, useMemo, useState } from "react";
 import { AppContext } from "./AppContext";
-import { AccountType, InvestmentType, DataType } from "./Types";
+import { AccountType, DataType } from "./Types";
 
 const formDataNumericValue = (formData: FormData, name: string) =>
   parseFloat((formData.get(name) as string) ?? "");
@@ -16,6 +16,7 @@ const formEventToAccount = (
     value: formDataNumericValue(formData, "value"),
     return: formDataNumericValue(formData, "return"),
     priority: formDataNumericValue(formData, "priority"),
+    investments: [],
   };
   if (!result.value) delete result.value;
   if (!result.return) delete result.return;
@@ -152,11 +153,7 @@ export const Accounts = () => {
         <tbody>
           {sortedAccounts.map((account) => {
             const key: number = account.id;
-            const investmentsValue = data.investments
-              .filter(
-                (investment: InvestmentType) =>
-                  investment.account === account.id
-              )
+            const investmentsValue = account.investments
               .reduce(
                 (tot, inv) => ((inv.shares || 0) * (inv.price || 0) || 0) + tot,
                 0

@@ -2,7 +2,7 @@
 export type GeneralType = {
   inflation: number;
   age: number;
-  lifeExpectancy: number;
+  until: number;
 };
 
 export type AccountType = {
@@ -14,11 +14,11 @@ export type AccountType = {
   value?: number;
   return?: number;
   priority?: number;
+  investments: InvestmentType[];
 };
 
 export type InvestmentType = {
   id: number;
-  account: number;
   name: string;
   shares?: number;
   basis?: number;
@@ -47,6 +47,11 @@ export type ExpenseType = {
 export type TaxType = {
   id: number;
   name: string;
+  rates: RateType[];
+};
+
+export type RateType = {
+  id: number;
   rate: number; // yearly
   min?: number;
   max?: number;
@@ -58,7 +63,6 @@ export type DataType = {
   name?: string;
   general: GeneralType;
   accounts: AccountType[];
-  investments: InvestmentType[];
   incomes: IncomeType[];
   taxes: TaxType[];
   expenses: ExpenseType[];
