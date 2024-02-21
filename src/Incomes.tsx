@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "./AppContext";
 import { IncomeType, DataType } from "./Types";
+import { humanDate } from "./utils";
 
 const formDataNumericValue = (formData: FormData, name: string) =>
   parseFloat((formData.get(name) as string) ?? "");
@@ -54,25 +55,13 @@ const IncomeForm = (props: IncomeFormProps) => {
       <footer>
         <span className="kind">Income</span>
         <div className="controls">
-          {onDelete && <button onClick={onCancel}>delete</button>}
+          {onDelete && <button onClick={onDelete}>delete</button>}
           <button onClick={onCancel}>cancel</button>
           <button type="submit">save</button>
         </div>
       </footer>
     </form>
   );
-};
-
-const humanDate = (date?: string) => {
-  if (!date) return undefined;
-  const [year, month, day] = date.split("-");
-  if (day === "01") {
-    if (month === "01") {
-      return year;
-    }
-    return `${month} ${year}`;
-  }
-  return date;
 };
 
 export const Incomes = () => {
@@ -115,7 +104,7 @@ export const Incomes = () => {
   const delet = (id: number) => () => {
     updateData((nextData: DataType) => {
       nextData.incomes = nextData.incomes.filter(
-        (income: IncomeType) => income.id === id
+        (income: IncomeType) => income.id !== id
       );
     });
   };

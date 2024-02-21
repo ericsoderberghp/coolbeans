@@ -28,31 +28,26 @@ const TaxForm = (props: TaxFormProps) => {
     onSubmit,
   } = props;
   return (
-    <div className="form">
-      <header>
+    <form onSubmit={onSubmit}>
+      <label>
+        name
+        <input name="name" type="text" defaultValue={tax.name} />
+      </label>
+      <footer>
         <span className="kind">Tax</span>
         <div className="controls">
-          {onDelete && <button onClick={onCancel}>delete</button>}
+          {onDelete && <button onClick={onDelete}>delete</button>}
           <button onClick={onCancel}>cancel</button>
-        </div>
-      </header>
-      <form onSubmit={onSubmit}>
-        <label>
-          name
-          <input name="name" type="text" defaultValue={tax.name} />
-        </label>
-        <footer>
-          <span />
           <button type="submit">save</button>
-        </footer>
-      </form>
-      {tax.id && <Rates taxId={tax.id} />}
-    </div>
+        </div>
+      </footer>
+    </form>
   );
 };
 
 export const Taxes = () => {
   const { data, updateData } = useContext(AppContext);
+  const [show, setShow] = useState(false);
   const [addingTax, setAddingTax] = useState(false);
   const [editingTax, setEditingTax] = useState(0);
 
@@ -84,7 +79,7 @@ export const Taxes = () => {
 
   const deleteTax = (id: number) => () => {
     updateData((nextData: DataType) => {
-      nextData.taxes = nextData.taxes.filter((tax: TaxType) => tax.id === id);
+      nextData.taxes = nextData.taxes.filter((tax: TaxType) => tax.id !== id);
     });
   };
 
@@ -92,37 +87,43 @@ export const Taxes = () => {
     <section>
       <header>
         <h2>Taxes</h2>
+        <button onClick={() => setShow(!show)}>{show ? "hide" : "show"}</button>
       </header>
-      <ul>
-        {!!data.taxes.length &&
-          data.taxes.map((tax) => {
-            const key: number = tax.id;
-            return (
-              <li key={key}>
-                {editingTax === key ? (
-                  <TaxForm
-                    tax={tax}
-                    onSubmit={updateTax(key)}
-                    onCancel={() => setEditingTax(0)}
-                    onDelete={deleteTax(key)}
-                  />
-                ) : (
-                  <header key="header">
-                    <span>{tax.name}</span>
-                    <button onClick={startEditingTax(key)}>edit</button>
-                  </header>
-                )}
-              </li>
-            );
-          })}
-      </ul>
-      <footer>
-        {addingTax ? (
-          <TaxForm onSubmit={addTax} onCancel={() => setAddingTax(false)} />
-        ) : (
-          <button onClick={startAddingTax}>add tax</button>
-        )}
-      </footer>
+      {show && [
+        <ul key="list">
+          {!!data.taxes.length &&
+            data.taxes.map((tax) => {
+              const key: number = tax.id;
+              return (
+                <li key={key}>
+                  {editingTax === key ? (
+                    <TaxForm
+                      tax={tax}
+                      onSubmit={updateTax(key)}
+                      onCancel={() => setEditingTax(0)}
+                      onDelete={deleteTax(key)}
+                    />
+                  ) : (
+                    [
+                      <header key="header">
+                        <h3>{tax.name}</h3>
+                        <button onClick={startEditingTax(key)}>edit</button>
+                      </header>,
+                      <Rates key="rates" taxId={tax.id} />,
+                    ]
+                  )}
+                </li>
+              );
+            })}
+        </ul>,
+        <footer key="footer">
+          {addingTax ? (
+            <TaxForm onSubmit={addTax} onCancel={() => setAddingTax(false)} />
+          ) : (
+            <button onClick={startAddingTax}>add tax</button>
+          )}
+        </footer>,
+      ]}
     </section>
   );
 };

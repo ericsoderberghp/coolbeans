@@ -20,7 +20,11 @@ section {
   padding: 1em 2em;
 }
 
-section > footer {
+.subSection {
+  padding: 1em;
+}
+
+section > footer, .subSection > footer {
   padding: 0 0.5em;
 }
 
@@ -31,6 +35,10 @@ footer,
   flex-flow: row;
   align-items: center;
   gap: var(--size);
+}
+
+h3 {
+  margin: 0;
 }
 
 button, input[type=file]::file-selector-button {
@@ -121,8 +129,11 @@ ol {
 }
 
 li {
+  margin-bottom: 1em;
+}
+
+li > header {
   padding: 0 0.5em;
-  margin-bottom: 2px;
 }
 
 table {
@@ -155,20 +166,11 @@ td.change {
   border-top: 1px solid hsl(0 100% 50% / 20%);
 }
 
-form, .form {
+form {
   margin: var(--size) 0;
   border: 1px solid hsl(0 0% var(--foreground-lightness) / 40%);
   padding: var(--size);
   width: 26em;
-}
-
-.form {
-  width: calc(26em + (var(--size) * 2));
-}
-
-.form header {
-  justify-content: space-between;
-  gap: var(--size);
 }
 
 form footer {

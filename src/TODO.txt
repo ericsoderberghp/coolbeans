@@ -1,6 +1,5 @@
 TODO:
 - bring back investments
-- refactor Taxes + Rates and Accounts + Investments
 - handle qualified vs. non-qualified dividends w.r.t. taxes
 - handle taxes on qualified (IRA) withdrawls
 - handle taxes on capital gains from investments

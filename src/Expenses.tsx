@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "./AppContext";
 import { ExpenseType, DataType } from "./Types";
+import { humanDate } from "./utils";
 
 const formDataNumericValue = (formData: FormData, name: string) =>
   parseFloat((formData.get(name) as string) ?? "");
@@ -56,7 +57,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
       <footer>
         <span className="kind">Expense</span>
         <div className="controls">
-          {onDelete && <button onClick={onCancel}>delete</button>}
+          {onDelete && <button onClick={onDelete}>delete</button>}
           <button onClick={onCancel}>cancel</button>
           <button type="submit">save</button>
         </div>
@@ -105,7 +106,7 @@ export const Expenses = () => {
   const delet = (id: number) => () => {
     updateData((nextData: DataType) => {
       nextData.expenses = nextData.expenses.filter(
-        (expense: ExpenseType) => expense.id === id
+        (expense: ExpenseType) => expense.id !== id
       );
     });
   };
@@ -145,8 +146,8 @@ export const Expenses = () => {
                       <td key="value" className="number">{`$${(
                         expense.value || 0
                       ).toLocaleString()}`}</td>,
-                      <td key="start">{expense.start}</td>,
-                      <td key="stop">{expense.start}</td>,
+                      <td key="start">{humanDate(expense.start)}</td>,
+                      <td key="stop">{humanDate(expense.stop)}</td>,
                       <td key="controls">
                         <button onClick={startEditing(key)}>edit</button>
                       </td>,

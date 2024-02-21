@@ -101,7 +101,7 @@ const InvestmentForm = (props: InvestmentFormProps) => {
       <footer>
         <button type="submit">save</button>
         <button onClick={onCancel}>cancel</button>
-        {onDelete && <button onClick={onCancel}>delete</button>}
+        {onDelete && <button onClick={onDelete}>delete</button>}
       </footer>
     </form>
   );
@@ -173,7 +173,7 @@ export const Investments = (props: InvestmentsProps) => {
     updateData((nextData: DataType) => {
       const account = getAccount(nextData, accountId);
       account.investments = account.investments.filter(
-        (investment: InvestmentType) => investment.id === id
+        (investment: InvestmentType) => investment.id !== id
       );
     });
   };

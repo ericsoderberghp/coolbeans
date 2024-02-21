@@ -50,7 +50,7 @@ const RateForm = (props: RateFormProps) => {
       <footer>
         <span className="kind">Rate</span>
         <div className="controls">
-          {onDelete && <button onClick={onCancel}>delete</button>}
+          {onDelete && <button onClick={onDelete}>delete</button>}
           <button onClick={onCancel}>cancel</button>
           <button type="submit">save</button>
         </div>
@@ -107,12 +107,12 @@ export const Rates = (props: RatesProps) => {
   const deleteRate = (id: number) => () => {
     updateData((nextData: DataType) => {
       const tax = getTax(nextData, taxId);
-      tax.rates = tax.rates.filter((rate: RateType) => rate.id === id);
+      tax.rates = tax.rates.filter((rate: RateType) => rate.id !== id);
     });
   };
 
   return (
-    <div>
+    <div className="subSection">
       <table key="rate" className="records">
         <thead>
           <tr>
@@ -156,17 +156,19 @@ export const Rates = (props: RatesProps) => {
           })}
         </tbody>
       </table>
-      {adding ? (
-        <RateForm
-          key="add"
-          onSubmit={addRate}
-          onCancel={() => setAdding(false)}
-        />
-      ) : (
-        <button key="add" onClick={startAdding()}>
-          add rate
-        </button>
-      )}
+      <footer>
+        {adding ? (
+          <RateForm
+            key="add"
+            onSubmit={addRate}
+            onCancel={() => setAdding(false)}
+          />
+        ) : (
+          <button key="add" onClick={startAdding()}>
+            add rate
+          </button>
+        )}
+      </footer>
     </div>
   );
 };

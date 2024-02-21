@@ -73,7 +73,7 @@ const AccountForm = (props: AccountFormProps) => {
       <footer>
         <span className="kind">Account</span>
         <div className="controls">
-          {onDelete && <button onClick={onCancel}>delete</button>}
+          {onDelete && <button onClick={onDelete}>delete</button>}
           <button onClick={onCancel}>cancel</button>
           <button type="submit">save</button>
         </div>
@@ -123,7 +123,7 @@ export const Accounts = () => {
   const delet = (id: number) => () => {
     updateData((nextData: DataType) => {
       nextData.accounts = nextData.accounts.filter(
-        (account) => account.id === id
+        (account) => account.id !== id
       );
     });
   };
