@@ -13,6 +13,7 @@ export type AccountType = {
   // allow not bothering with investments by setting value and return on account
   value?: number;
   return?: number;
+  dividend?: number;
   priority?: number;
   investments: InvestmentType[];
 };

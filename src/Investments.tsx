@@ -49,7 +49,7 @@ const InvestmentForm = (props: InvestmentFormProps) => {
   return (
     <form onSubmit={onSubmit}>
       <label>
-        name
+        symbol
         <input name="name" type="text" defaultValue={investment.name} />
       </label>
       <label>
@@ -58,33 +58,32 @@ const InvestmentForm = (props: InvestmentFormProps) => {
       </label>
       <label>
         basis
-        <input name="basis" type="number" defaultValue={investment.basis} />
+        <input
+          name="basis"
+          type="number"
+          step="0.01"
+          defaultValue={investment.basis}
+        />
       </label>
       <label>
-        estimated return
-        <span>
-          <input
-            name="return"
-            className="percent"
-            type="number"
-            step="0.01"
-            defaultValue={investment.return}
-          />
-          %
-        </span>
+        return %
+        <input
+          name="return"
+          className="percent"
+          type="number"
+          step="0.01"
+          defaultValue={investment.return}
+        />
       </label>
       <label>
-        estimated dividend yield
-        <span>
-          <input
-            className="percent"
-            name="dividend"
-            type="number"
-            step="0.01"
-            defaultValue={investment.dividend}
-          />
-          %
-        </span>
+        dividend yield %
+        <input
+          className="percent"
+          name="dividend"
+          type="number"
+          step="0.01"
+          defaultValue={investment.dividend}
+        />
       </label>
       <label>
         priority
@@ -96,12 +95,20 @@ const InvestmentForm = (props: InvestmentFormProps) => {
       </label>
       <label>
         price
-        <input name="price" type="number" defaultValue={investment.price} />
+        <input
+          name="price"
+          type="number"
+          step="0.01"
+          defaultValue={investment.price}
+        />
       </label>
       <footer>
-        <button type="submit">save</button>
-        <button onClick={onCancel}>cancel</button>
-        {onDelete && <button onClick={onDelete}>delete</button>}
+        <span className="kind">Investment</span>
+        <div className="controls">
+          {onDelete && <button onClick={onDelete}>delete</button>}
+          <button onClick={onCancel}>cancel</button>
+          <button type="submit">save</button>
+        </div>
       </footer>
     </form>
   );
@@ -115,16 +122,92 @@ const getAccount = (data: DataType, id: number) => {
   return account;
 };
 
+type InvestmentProps = {
+  account: AccountType;
+  investment: InvestmentType;
+};
+
+export const Investment = (props: InvestmentProps) => {
+  const { account, investment } = props;
+  const id = investment.id;
+  const accountId = account.id;
+  const { updateData } = useContext(AppContext);
+  const [editing, setEditing] = useState(false);
+
+  const update = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    updateData((nextData) => {
+      const account = getAccount(nextData, accountId);
+      const investment = formEventToInvestment(event);
+      investment.id = id;
+      const index = account.investments.findIndex(
+        (investment: InvestmentType) => investment.id === id
+      );
+      account.investments.splice(index, 1, investment);
+    });
+    setEditing(false);
+  };
+
+  const delet = () => {
+    updateData((nextData: DataType) => {
+      const account = getAccount(nextData, accountId);
+      account.investments = account.investments.filter(
+        (investment: InvestmentType) => investment.id !== id
+      );
+    });
+  };
+
+  const value = calculatedValue(investment);
+  return (
+    <tr>
+      {editing ? (
+        <td colSpan={7}>
+          <InvestmentForm
+            investment={investment}
+            onSubmit={update}
+            onCancel={() => setEditing(false)}
+            onDelete={delet}
+          />
+        </td>
+      ) : (
+        [
+          <td key="symbol">{investment.name}</td>,
+          <td
+            key="value"
+            className="number"
+          >{`$${value.toLocaleString()}`}</td>,
+          <td key="return" className="number">
+            {investment.return || 0}%
+          </td>,
+          <td key="dividend" className="number">
+            {investment.dividend || 0}%
+          </td>,
+          <td key="gains" className="number">
+            {investment.basis
+              ? `$${(value - investment.basis).toLocaleString()}`
+              : undefined}
+          </td>,
+          <td key="priority" className="number">
+            {investment.priority}
+          </td>,
+          <td key="controls">
+            <button onClick={() => setEditing(true)}>edit</button>
+          </td>,
+        ]
+      )}
+    </tr>
+  );
+};
+
 type InvestmentsProps = {
-  accountId: number;
+  account: AccountType;
 };
 
 export const Investments = (props: InvestmentsProps) => {
-  const { accountId } = props;
-  const { data, updateData } = useContext(AppContext);
+  const { account } = props;
+  const accountId = account.id;
+  const { updateData } = useContext(AppContext);
   const [adding, setAdding] = useState(false);
-  const [editing, setEditing] = useState(0);
-  const account = getAccount(data, accountId);
 
   const sortedInvestments = useMemo(
     () =>
@@ -134,8 +217,10 @@ export const Investments = (props: InvestmentsProps) => {
     [account]
   );
 
-  const startAdding = () => setAdding(!adding);
-  const startEditing = (id: number) => () => setEditing(id);
+  const totalValue = account.investments.reduce(
+    (tot, inv) => ((inv.shares || 0) * (inv.price || 0) || 0) + tot,
+    0
+  );
 
   const add = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -155,98 +240,44 @@ export const Investments = (props: InvestmentsProps) => {
     setAdding(false);
   };
 
-  const update = (id: number) => (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    updateData((nextData) => {
-      const account = getAccount(nextData, accountId);
-      const investment = formEventToInvestment(event);
-      investment.id = id;
-      const index = account.investments.findIndex(
-        (investment: InvestmentType) => investment.id === id
-      );
-      account.investments.splice(index, 1, investment);
-    });
-    setEditing(0);
-  };
-
-  const delet = (id: number) => () => {
-    updateData((nextData: DataType) => {
-      const account = getAccount(nextData, accountId);
-      account.investments = account.investments.filter(
-        (investment: InvestmentType) => investment.id !== id
-      );
-    });
-  };
-
   return (
-    <div>
-      <header>
-        <h2>Investments</h2>
-      </header>
+    <div className="subSection">
       {!!account.investments.length && (
         <table className="records">
           <thead>
             <tr>
               <th>symbol</th>
-              <th>value</th>
-              <th>return</th>
-              <th>dividend</th>
-              <th>gains</th>
-              <th>priority</th>
+              <th className="number">value</th>
+              <th className="number">return</th>
+              <th className="number">dividend</th>
+              <th className="number">gains</th>
+              <th className="number">priority</th>
             </tr>
           </thead>
           <tbody>
-            {sortedInvestments.map((investment) => {
-              const key: number = investment.id;
-              const value = calculatedValue(investment);
-              return (
-                <tr key={key}>
-                  {editing === key ? (
-                    <td colSpan={4}>
-                      <InvestmentForm
-                        investment={investment}
-                        onSubmit={update(key)}
-                        onCancel={() => setEditing(0)}
-                        onDelete={delet(key)}
-                      />
-                    </td>
-                  ) : (
-                    [
-                      <td key="name">{investment.name}</td>,
-                      <td
-                        key="value"
-                        className="number"
-                      >{`$${value.toLocaleString()}`}</td>,
-                      <td key="return" className="number">
-                        {investment.return || 0}%
-                      </td>,
-                      <td key="dividend" className="number">
-                        {investment.dividend || 0}%
-                      </td>,
-                      <td key="gains" className="number">
-                        {investment.basis
-                          ? (value - investment.basis).toLocaleString()
-                          : undefined}
-                      </td>,
-                      <td key="priority" className="number">
-                        {investment.priority}
-                      </td>,
-                      <td key="controls">
-                        <button onClick={startEditing(key)}>edit</button>
-                      </td>,
-                    ]
-                  )}
-                </tr>
-              );
-            })}
+            {sortedInvestments.map((investment) => (
+              <Investment
+                key={investment.id}
+                account={account}
+                investment={investment}
+              />
+            ))}
           </tbody>
+          <tfoot>
+            <tr>
+              <td></td>
+              <td className="total">{`$${totalValue.toLocaleString()}`}</td>
+            </tr>
+          </tfoot>
         </table>
       )}
-      {adding ? (
-        <InvestmentForm onSubmit={add} onCancel={() => setAdding(false)} />
-      ) : (
-        <button onClick={startAdding}>add</button>
-      )}
+      <footer>
+        {adding ? (
+          <InvestmentForm onSubmit={add} onCancel={() => setAdding(false)} />
+        ) : (
+          <button onClick={() => setAdding(true)}>add investment</button>
+        )}
+      </footer>
     </div>
   );
 };

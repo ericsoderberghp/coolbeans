@@ -1,14 +1,12 @@
 TODO:
-- bring back investments
-- handle qualified vs. non-qualified dividends w.r.t. taxes
+- text and fix keyboard interaction
 - handle taxes on qualified (IRA) withdrawls
 - handle taxes on capital gains from investments
+- invest extra income
 - multiple data sets, to allow showing different scenarios
 - implement asset classes?
-- invest extra income
 - use API to get current stock prices
 - Medicare
-- show per-tax name projections
 - charts
 - slider controls to adjust values and watch projections change in real time
    perhaps a "focused" number?

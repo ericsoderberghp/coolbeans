@@ -29,12 +29,18 @@ section > footer, .subSection > footer {
 }
 
 header,
-footer,
-.controls {
+footer {
   display: flex;
   flex-flow: row;
   align-items: center;
   gap: var(--size);
+}
+
+.controls {
+  display: flex;
+  flex-flow: row;
+  align-items: center;
+  gap: var(--half-size);
 }
 
 h3 {
@@ -149,11 +155,19 @@ th {
   vertical-align: bottom;
 }
 
+table.years tr:hover td, table.years tr:hover th {
+  background-color: hsl(0 0% var(--foreground-lightness) / 5%);
+}
+
 table.records td,
 table.records th,
 table.years td,
 table.years th {
   padding: 0 0.5em;
+}
+
+tfoot td.total {
+  border-top: 1px solid hsl(0 0% var(--foreground-lightness) / 40%);
 }
 
 td.number,
@@ -179,7 +193,7 @@ form footer {
   gap: var(--size);
 }
 
-form button, .controls button {
+form button, div.controls button {
   font-weight: bold;
   background-color: hsl(0 0% var(--foreground-lightness) / 5%);
   color: inherit;
