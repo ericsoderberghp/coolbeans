@@ -40,7 +40,7 @@ const IncomeForm = (props: IncomeFormProps) => {
         <input name="name" type="text" defaultValue={income.name} />
       </label>
       <label>
-        value
+        $ per year
         <input name="value" type="number" defaultValue={income.value} />
       </label>
       <label>
@@ -52,12 +52,27 @@ const IncomeForm = (props: IncomeFormProps) => {
         <input name="stop" type="date" defaultValue={income.stop} />
       </label>
       <footer>
-        <button type="submit">save</button>
-        <button onClick={onCancel}>cancel</button>
-        {onDelete && <button onClick={onCancel}>delete</button>}
+        <span className="kind">Income</span>
+        <div className="controls">
+          {onDelete && <button onClick={onCancel}>delete</button>}
+          <button onClick={onCancel}>cancel</button>
+          <button type="submit">save</button>
+        </div>
       </footer>
     </form>
   );
+};
+
+const humanDate = (date?: string) => {
+  if (!date) return undefined;
+  const [year, month, day] = date.split("-");
+  if (day === "01") {
+    if (month === "01") {
+      return year;
+    }
+    return `${month} ${year}`;
+  }
+  return date;
 };
 
 export const Incomes = () => {
@@ -106,56 +121,60 @@ export const Incomes = () => {
   };
 
   return (
-    <div>
+    <section>
       <header>
         <h2>Income</h2>
       </header>
       {!!data.incomes.length && (
-      <table className="records">
-        <thead>
-          <tr>
-            <th>name</th>
-            <th>yearly value</th>
-            <th>effective</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.incomes.map((income) => {
-            const key: number = income.id;
-            return (
-              <tr key={key}>
-                {editing === key ? (
-                  <td colSpan={4}>
-                    <IncomeForm
-                      income={income}
-                      onSubmit={update(key)}
-                      onCancel={() => setEditing(0)}
-                      onDelete={delet(key)}
-                    />
-                  </td>
-                ) : (
-                  [
-                    <td key="name">{income.name}</td>,
-                    <td key="value" className="number">{`$${(
-                      income.value || 0
-                    ).toLocaleString()}`}</td>,
-                    <td key="effective">{income.start} - {income.stop}</td>,
-                    <td key="controls">
-                      <button onClick={startEditing(key)}>edit</button>
-                    </td>,
-                  ]
-                )}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+        <table className="records">
+          <thead>
+            <tr>
+              <th>name</th>
+              <th>per year</th>
+              <th>start</th>
+              <th>stop</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.incomes.map((income) => {
+              const key: number = income.id;
+              return (
+                <tr key={key}>
+                  {editing === key ? (
+                    <td colSpan={5}>
+                      <IncomeForm
+                        income={income}
+                        onSubmit={update(key)}
+                        onCancel={() => setEditing(0)}
+                        onDelete={delet(key)}
+                      />
+                    </td>
+                  ) : (
+                    [
+                      <td key="name">{income.name}</td>,
+                      <td key="value" className="number">{`$${(
+                        income.value || 0
+                      ).toLocaleString()}`}</td>,
+                      <td key="start">{humanDate(income.start)}</td>,
+                      <td key="stop">{humanDate(income.stop)}</td>,
+                      <td key="controls">
+                        <button onClick={startEditing(key)}>edit</button>
+                      </td>,
+                    ]
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       )}
-      {adding ? (
-        <IncomeForm onSubmit={add} onCancel={() => setAdding(false)} />
-      ) : (
-        <button onClick={startAdding}>add</button>
-      )}
-    </div>
+      <footer>
+        {adding ? (
+          <IncomeForm onSubmit={add} onCancel={() => setAdding(false)} />
+        ) : (
+          <button onClick={startAdding}>add income</button>
+        )}
+      </footer>
+    </section>
   );
 };

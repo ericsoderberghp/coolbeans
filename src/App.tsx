@@ -2,15 +2,38 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
 import { AppContext, initialData } from "./AppContext";
 import { DataType } from "./Types";
-import { General } from "./General";
 import { Accounts } from "./Accounts";
 import { Incomes } from "./Incomes";
 import { Taxes } from "./Taxes";
 import { Expenses } from "./Expenses";
 import { Projections } from "./Projections";
 
+const scheme = {
+  dark: { background: "6%", foreground: "85%" },
+  light: { background: "100%", foreground: "10%" },
+};
+
 function App() {
   const [data, setData] = useState(initialData);
+
+  // set color mode based on browser color scheme
+  useEffect(() => {
+    const setDarkScheme = (dark: boolean) => {
+      const mode = dark ? "dark" : "light";
+      document.documentElement.style.setProperty(
+        "--background-lightness",
+        scheme[mode].background
+      );
+      document.documentElement.style.setProperty(
+        "--foreground-lightness",
+        scheme[mode].foreground
+      );
+    };
+    setDarkScheme(window.matchMedia("(prefers-color-scheme: dark)").matches);
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", (event) => setDarkScheme(event.matches));
+  }, []);
 
   // load saved data initially
   useEffect(() => {
@@ -61,13 +84,18 @@ function App() {
     a.click();
   };
 
-  const onImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event?.target?.files?.length === 1) {
-      const text = await new Response(event.target.files[0]).text();
-      const nextData = JSON.parse(text);
-      localStorage.setItem("retirementData", JSON.stringify(nextData));
-      setData(nextData);
-    }
+  const onImportClick = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.onchange = async (event: any) => {
+      if (event?.target?.files?.length === 1) {
+        const text = await new Response(event.target.files[0]).text();
+        const nextData = JSON.parse(text);
+        localStorage.setItem("retirementData", JSON.stringify(nextData));
+        setData(nextData);
+      }
+    };
+    input.click();
   };
 
   const onReset = () => {
@@ -81,17 +109,15 @@ function App() {
         <header>
           <h1>Cool Beans</h1>
           <button onClick={onExport}>export</button>
-          <input type="file" accept="application/json" onChange={onImport} />
+          <button onClick={onImportClick}>import</button>
           <button onClick={onReset}>reset</button>
         </header>
 
-        <General />
         <Expenses />
-        <Accounts />
         <Incomes />
+        <Accounts />
         <Taxes />
         <Projections />
-        
       </main>
     </AppContext.Provider>
   );

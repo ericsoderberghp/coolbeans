@@ -42,7 +42,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
         <input name="name" type="text" defaultValue={expense.name} />
       </label>
       <label>
-        value
+        $ per year
         <input name="value" type="number" defaultValue={expense.value} />
       </label>
       <label>
@@ -54,9 +54,12 @@ const ExpenseForm = (props: ExpenseFormProps) => {
         <input name="stop" type="date" defaultValue={expense.stop} />
       </label>
       <footer>
-        <button type="submit">save</button>
-        <button onClick={onCancel}>cancel</button>
-        {onDelete && <button onClick={onCancel}>delete</button>}
+        <span className="kind">Expense</span>
+        <div className="controls">
+          {onDelete && <button onClick={onCancel}>delete</button>}
+          <button onClick={onCancel}>cancel</button>
+          <button type="submit">save</button>
+        </div>
       </footer>
     </form>
   );
@@ -108,56 +111,60 @@ export const Expenses = () => {
   };
 
   return (
-    <div>
+    <section>
       <header>
         <h2>Expenses</h2>
       </header>
       {!!data.expenses.length && (
-      <table className="records">
-        <thead>
-          <tr>
-            <th>name</th>
-            <th>yearly value</th>
-            <th>effective</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.expenses.map((expense) => {
-            const key: number = expense.id;
-            return (
-              <tr key={key}>
-                {editing === key ? (
-                  <td colSpan={4}>
-                    <ExpenseForm
-                      expense={expense}
-                      onSubmit={update(key)}
-                      onCancel={() => setEditing(0)}
-                      onDelete={delet(key)}
-                    />
-                  </td>
-                ) : (
-                  [
-                    <td key="name">{expense.name}</td>,
-                    <td key="value" className="number">{`$${(
-                      expense.value || 0
-                    ).toLocaleString()}`}</td>,
-                    <td key="effective">{expense.start} - {expense.stop}</td>,
-                    <td key="controls">
-                      <button onClick={startEditing(key)}>edit</button>
-                    </td>,
-                  ]
-                )}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+        <table className="records">
+          <thead>
+            <tr>
+              <th>name</th>
+              <th>per year</th>
+              <th>start</th>
+              <th>stop</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.expenses.map((expense) => {
+              const key: number = expense.id;
+              return (
+                <tr key={key}>
+                  {editing === key ? (
+                    <td colSpan={5}>
+                      <ExpenseForm
+                        expense={expense}
+                        onSubmit={update(key)}
+                        onCancel={() => setEditing(0)}
+                        onDelete={delet(key)}
+                      />
+                    </td>
+                  ) : (
+                    [
+                      <td key="name">{expense.name}</td>,
+                      <td key="value" className="number">{`$${(
+                        expense.value || 0
+                      ).toLocaleString()}`}</td>,
+                      <td key="start">{expense.start}</td>,
+                      <td key="stop">{expense.start}</td>,
+                      <td key="controls">
+                        <button onClick={startEditing(key)}>edit</button>
+                      </td>,
+                    ]
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       )}
-      {adding ? (
-        <ExpenseForm onSubmit={add} onCancel={() => setAdding(false)} />
-      ) : (
-        <button onClick={startAdding}>add</button>
-      )}
-    </div>
+      <footer>
+        {adding ? (
+          <ExpenseForm onSubmit={add} onCancel={() => setAdding(false)} />
+        ) : (
+          <button onClick={startAdding}>add expense</button>
+        )}
+      </footer>
+    </section>
   );
 };

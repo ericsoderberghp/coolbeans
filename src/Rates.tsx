@@ -30,17 +30,14 @@ const RateForm = (props: RateFormProps) => {
   return (
     <form onSubmit={onSubmit}>
       <label>
-        rate
-        <span>
-          <input
-            name="rate"
-            className="percent"
-            type="number"
-            step="0.01"
-            defaultValue={rate.rate}
-          />
-          %
-        </span>
+        rate %
+        <input
+          name="rate"
+          className="percent"
+          type="number"
+          step="0.01"
+          defaultValue={rate.rate}
+        />
       </label>
       <label>
         min
@@ -51,9 +48,12 @@ const RateForm = (props: RateFormProps) => {
         <input name="max" type="number" defaultValue={rate.max} />
       </label>
       <footer>
-        <button type="submit">save</button>
-        <button onClick={onCancel}>cancel</button>
-        {onDelete && <button onClick={onCancel}>delete</button>}
+        <span className="kind">Rate</span>
+        <div className="controls">
+          {onDelete && <button onClick={onCancel}>delete</button>}
+          <button onClick={onCancel}>cancel</button>
+          <button type="submit">save</button>
+        </div>
       </footer>
     </form>
   );
@@ -61,7 +61,7 @@ const RateForm = (props: RateFormProps) => {
 
 const getTax = (data: DataType, id: number) => {
   const tax = data.taxes.find((tax: TaxType) => tax.id === id);
-  if (!tax) throw new TypeError('missing tax');
+  if (!tax) throw new TypeError("missing tax");
   return tax;
 };
 
@@ -147,9 +147,7 @@ export const Rates = (props: RatesProps) => {
                       ${(rate.max || 0).toLocaleString()}
                     </td>,
                     <td key="controls">
-                      <button onClick={startEditing(key)}>
-                        edit
-                      </button>
+                      <button onClick={startEditing(key)}>edit</button>
                     </td>,
                   ]
                 )}
@@ -166,7 +164,7 @@ export const Rates = (props: RatesProps) => {
         />
       ) : (
         <button key="add" onClick={startAdding()}>
-          add
+          add rate
         </button>
       )}
     </div>

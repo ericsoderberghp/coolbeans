@@ -28,17 +28,14 @@ const GeneralForm = (props: GeneralFormProps) => {
   return (
     <form onSubmit={onSubmit}>
       <label>
-        inflation
-        <span>
-          <input
-            name="inflation"
-            className="percent"
-            type="number"
-            step="0.01"
-            defaultValue={props.general.inflation}
-          />
-          %
-        </span>
+        inflation %
+        <input
+          name="inflation"
+          className="percent"
+          type="number"
+          step="0.01"
+          defaultValue={props.general.inflation}
+        />
       </label>
       <label>
         age
@@ -46,15 +43,14 @@ const GeneralForm = (props: GeneralFormProps) => {
       </label>
       <label>
         until
-        <input
-          name="until"
-          type="number"
-          defaultValue={props.general.until}
-        />
+        <input name="until" type="number" defaultValue={props.general.until} />
       </label>
       <footer>
-        <button type="submit">save</button>
-        <button onClick={onCancel}>cancel</button>
+        <span className="kind">Projection</span>
+        <div className="controls">
+          <button onClick={onCancel}>cancel</button>
+          <button type="submit">save</button>
+        </div>
       </footer>
     </form>
   );
@@ -76,9 +72,6 @@ export const General = () => {
 
   return (
     <div>
-      <header>
-        <h2>General</h2>
-      </header>
       <table className="records">
         <thead>
           <tr>

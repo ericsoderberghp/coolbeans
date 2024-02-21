@@ -8,7 +8,7 @@ const formEventToTax = (event: React.FormEvent<HTMLFormElement>): TaxType => {
   const result: TaxType = {
     id: 0,
     name: formData.get("name") as string,
-    rates: []
+    rates: [],
   };
   return result;
 };
@@ -28,17 +28,26 @@ const TaxForm = (props: TaxFormProps) => {
     onSubmit,
   } = props;
   return (
-    <form onSubmit={onSubmit}>
-      <label>
-        name
-        <input name="name" type="text" defaultValue={tax.name} />
-      </label>
-      <footer>
-        <button type="submit">save</button>
-        <button onClick={onCancel}>cancel</button>
-        {onDelete && <button onClick={onCancel}>delete</button>}
-      </footer>
-    </form>
+    <div className="form">
+      <header>
+        <span className="kind">Tax</span>
+        <div className="controls">
+          {onDelete && <button onClick={onCancel}>delete</button>}
+          <button onClick={onCancel}>cancel</button>
+        </div>
+      </header>
+      <form onSubmit={onSubmit}>
+        <label>
+          name
+          <input name="name" type="text" defaultValue={tax.name} />
+        </label>
+        <footer>
+          <span />
+          <button type="submit">save</button>
+        </footer>
+      </form>
+      {tax.id && <Rates taxId={tax.id} />}
+    </div>
   );
 };
 
@@ -80,7 +89,7 @@ export const Taxes = () => {
   };
 
   return (
-    <div>
+    <section>
       <header>
         <h2>Taxes</h2>
       </header>
@@ -98,23 +107,22 @@ export const Taxes = () => {
                     onDelete={deleteTax(key)}
                   />
                 ) : (
-                  [
-                    <header key="header">
-                      <h3>{tax.name}</h3>
-                      <button onClick={startEditingTax(key)}>edit</button>
-                    </header>,
-                    <Rates key="rates" taxId={key} />
-                  ]
+                  <header key="header">
+                    <span>{tax.name}</span>
+                    <button onClick={startEditingTax(key)}>edit</button>
+                  </header>
                 )}
               </li>
             );
           })}
       </ul>
-      {addingTax ? (
-        <TaxForm onSubmit={addTax} onCancel={() => setAddingTax(false)} />
-      ) : (
-        <button onClick={startAddingTax}>add</button>
-      )}
-    </div>
+      <footer>
+        {addingTax ? (
+          <TaxForm onSubmit={addTax} onCancel={() => setAddingTax(false)} />
+        ) : (
+          <button onClick={startAddingTax}>add tax</button>
+        )}
+      </footer>
+    </section>
   );
 };

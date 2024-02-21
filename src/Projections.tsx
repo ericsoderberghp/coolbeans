@@ -1,6 +1,7 @@
 import React, { useContext, useMemo, useState } from "react";
 import { AppContext } from "./AppContext";
 import { AccountType, ExpenseType, IncomeType, InvestmentType } from "./Types";
+import { General } from "./General";
 
 type ProjectionType = {
   year: number;
@@ -8,6 +9,8 @@ type ProjectionType = {
   accounts: {
     account: AccountType;
     value: number;
+    dividends: number;
+    change: boolean;
     investments: {
       investment: InvestmentType;
       value: number;
@@ -23,7 +26,7 @@ type ProjectionType = {
     value: number;
   }[];
   assets: number;
-  // dividends: number;
+  dividends: number;
   income: number;
   tax: number;
   expense: number;
@@ -50,6 +53,7 @@ export const Projections = () => {
   const projections: ProjectionType[] = useMemo(() => {
     const startYear = new Date().getFullYear();
     const result = [];
+    const changed: { [key:string]: boolean } = {};
 
     // initialize the first year based on current values
     let prior: ProjectionType = {
@@ -65,6 +69,7 @@ export const Projections = () => {
             0,
           dividends: 0,
         }));
+        changed[account.id] = false;
         return {
           account,
           value:
@@ -73,7 +78,9 @@ export const Projections = () => {
               .map((i) => i.value)
               .reduce((tot, value) => tot + value, 0) ||
             0,
+          dividends: 0,
           investments,
+          change: false,
         };
       }),
       incomes: data.incomes.map((income) => ({
@@ -88,7 +95,7 @@ export const Projections = () => {
           0,
       })),
       assets: 0,
-      // dividends: 0,
+      dividends: 0,
       income: 0,
       tax: 0,
       expense: 0,
@@ -134,6 +141,7 @@ export const Projections = () => {
           value: incrementByPercentage(a.value, account.return),
           dividends,
           investments,
+          change: false,
         };
       });
 
@@ -221,9 +229,13 @@ export const Projections = () => {
             if (shortfall < acc.value) {
               acc.value -= shortfall;
               shortfall = 0;
+              acc.change = !changed[acc.account.id] && true;
+              changed[acc.account.id] = true;
             } else {
               shortfall -= acc.value;
               acc.value = 0;
+              acc.change = !changed[acc.account.id] && true;
+              changed[acc.account.id] = true;
             }
           }
         }
@@ -238,7 +250,7 @@ export const Projections = () => {
         incomes,
         expenses,
         assets,
-        // dividends,
+        dividends: 0,
         income,
         tax,
         expense,
@@ -252,14 +264,14 @@ export const Projections = () => {
   }, [data]);
 
   return (
-    <div>
+    <section>
       <header>
         <h2>Projections</h2>
         <button onClick={() => setExpanded(!expanded)}>
           {expanded ? "collapse" : "expand"}
         </button>
       </header>
-      {/* <div>within {JSON.stringify(within(2038, '2037-01-01', ''))}</div> */}
+      <General />
       <table className="years">
         <thead>
           <tr>
@@ -270,21 +282,29 @@ export const Projections = () => {
             {expanded &&
               data.expenses.length > 1 &&
               data.expenses.map((expense) => (
-                <th key={expense.id}>{expense.name}</th>
+                <th key={expense.id} className="number">
+                  {expense.name}
+                </th>
               ))}
             <th className="number">taxes</th>
             <th className="number">income</th>
             {expanded &&
               data.incomes.map((income) => (
-                <th key={income.id}>{income.name}</th>
+                <th key={income.id} className="number">
+                  {income.name}
+                </th>
               ))}
             {/* <th className="number">dividends</th> */}
             <th className="number">assets</th>
             {expanded &&
               data.accounts.map((account) => [
-                <th key={account.id}>{account.name}</th>,
+                <th key={account.id} className="number">
+                  {account.name}
+                </th>,
                 account.investments.map((investment) => (
-                  <th key={investment.id}>{investment.name}</th>
+                  <th key={investment.id} className="number">
+                    {investment.name}
+                  </th>
                 )),
               ])}
           </tr>
@@ -327,8 +347,8 @@ export const Projections = () => {
               </td>
               {expanded &&
                 projection.accounts.map(
-                  ({ account: { id }, value, investments }) => [
-                    <td key={id} className="number">
+                  ({ account: { id }, value, investments, change }) => [
+                    <td key={id} className={`number${change ? ' change' : ''}`}>
                       ${Math.round(value).toLocaleString()}
                     </td>,
                     investments.map(({ investment: { id }, value }) => (
@@ -342,6 +362,6 @@ export const Projections = () => {
           ))}
         </tbody>
       </table>
-    </div>
+    </section>
   );
 };

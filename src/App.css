@@ -1,68 +1,189 @@
-
-body {
+:root {
   --size: 24px;
   --half-size: calc(var(--size) / 2);
+  --quarter-size: calc(var(--size) / 4);
+  --background-lightness: 10%;
+  --foreground-lightness: 100%;
+}
+
+body {
+  font-family: 'courier new', courier, monospace;
+  background-color: hsl(0 0% var(--background-lightness));
+  color: hsl(0 0% var(--foreground-lightness));
 }
 
 main {
-  /* max-width: calc(var(--size) * 24); */
   margin: 1em 2em;
 }
 
-header, footer {
+section footer {
+  padding: 0 1em;
+}
+
+header,
+footer,
+.controls {
   display: flex;
   flex-flow: row;
   align-items: center;
   gap: var(--size);
 }
 
+button, input[type=file]::file-selector-button {
+  appearance: none;
+  font: inherit;
+  padding: 0 var(--quarter-size);
+  color: hsl(0 0% var(--foreground-lightness) / 90%);
+  background: none;
+  border: 1px solid;
+  border-color: hsl(0 0% var(--foreground-lightness) / 30%);
+  border-radius: 0.25em;
+}
+
+button:hover, .controls button:hover {
+  cursor: pointer;
+  background-color: hsl(0 0% var(--foreground-lightness) / 80%);
+  color: hsl(0 0% var(--background-lightness));
+  border-color: hsl(0 0% var(--foreground-lightness) / 80%);
+}
+
 label {
-  display: flex;
-  flex-flow: row;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
   gap: var(--size);
-  margin-bottom: var(--half-size);
+  font-weight: bold;
+  white-space: nowrap
+}
+
+input {
+  font-family: 'courier new', courier, monospace;
+  font-size: 1em;
+  background-color: inherit;
+  color: inherit;
+  border: 1px solid hsl(0 0% var(--foreground-lightness) / 30%);
+  padding: var(--quarter-size) var(--half-size);
+  margin-bottom: -1px;
+  width: 12em;
+}
+
+input:focus {
+  position: relative;
+  z-index: 1;
 }
 
 input[type=number] {
   font-variant-numeric: tabular-nums;
-  text-align:right;
-  width: 10em;
+  text-align: right;
 }
 
-input.percent {
-  width: 4em;
+input[type=checkbox] {
+  appearance: none;
+  margin: 0;
+  position: relative;
+  box-sizing: content-box;
+  margin-bottom: -1px;
+  font: inherit;
+  height: calc(1em + 2px);
 }
 
-ul, ol {
+input[type=checkbox]:hover {
+  cursor: pointer;
+  background: #ddd;
+}
+
+input[type="checkbox"]::after {
+  content: '';
+  position: absolute;
+  right: 18px;
+  top: 6px;
+  display: box;
+  width: 0.33em;
+  height: 0.66em;
+  transform: rotate(33deg);
+}
+
+input[type="checkbox"]:checked::after {
+  border-right: 4px solid black;
+  border-bottom: 4px solid black;
+}
+
+ul,
+ol {
   margin: 0;
   padding: 0;
+  margin-bottom: 0.5em;
+  list-style: none;
 }
 
-td, th {
+li {
+  padding: 0 1em;
+  margin-bottom: 2px;
+}
+
+table {
+  margin-bottom: 0.5em;
+}
+
+td,
+th {
   text-align: left;
-  vertical-align: top;
 }
 
-table.records td, table.records th {
-  padding-right: 1em;
+th {
+  vertical-align: bottom;
 }
 
-td.number, th.number {
+table.records td,
+table.records th,
+table.years td,
+table.years th {
+  padding: 0 0.5em;
+}
+
+td.number,
+th.number {
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
 
-form {
-  border: 1px solid grey;
-  border-radius: 0.25em;
-  padding: 1em;
+td.change {
+  border-top: 1px solid hsl(0 100% 50% / 20%);
+}
+
+form, .form {
+  margin: var(--size) 0;
+  border: 1px solid hsl(0 0% var(--foreground-lightness) / 40%);
+  padding: var(--size);
+  width: 26em;
+}
+
+.form {
+  width: calc(26em + (var(--size) * 2));
+}
+
+.form header {
+  justify-content: space-between;
+  gap: var(--size);
 }
 
 form footer {
+  padding-top: var(--size);
   justify-content: space-between;
+  gap: var(--size);
 }
 
-table.years td, table.years th {
-  padding-right: 1em;
+form button, .controls button {
+  font-weight: bold;
+  background-color: hsl(0 0% var(--foreground-lightness) / 5%);
+  color: inherit;
+  padding: var(--quarter-size) var(--half-size);
+}
+
+.kind {
+  font-size: 1.4em;
+}
+
+table.years {
+  margin: 0 1em;
 }

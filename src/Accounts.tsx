@@ -57,26 +57,26 @@ const AccountForm = (props: AccountFormProps) => {
         />
       </label>
       <label>
-        estimated return
-        <span>
-          <input
-            className="percent"
-            name="return"
-            type="number"
-            step="0.01"
-            defaultValue={account.return}
-          />
-          %
-        </span>
+        estimated return %
+        <input
+          className="percent"
+          name="return"
+          type="number"
+          step="0.01"
+          defaultValue={account.return}
+        />
       </label>
       <label>
         priority
         <input name="priority" type="number" defaultValue={account.priority} />
       </label>
       <footer>
-        <button type="submit">save</button>
-        <button onClick={onCancel}>cancel</button>
-        {onDelete && <button onClick={onCancel}>delete</button>}
+        <span className="kind">Account</span>
+        <div className="controls">
+          {onDelete && <button onClick={onCancel}>delete</button>}
+          <button onClick={onCancel}>cancel</button>
+          <button type="submit">save</button>
+        </div>
       </footer>
     </form>
   );
@@ -89,9 +89,7 @@ export const Accounts = () => {
 
   const sortedAccounts = useMemo(
     () =>
-      data.accounts.sort(
-        (a1, a2) => (a1.priority || 0) - (a2.priority || 0)
-      ),
+      data.accounts.sort((a1, a2) => (a1.priority || 0) - (a2.priority || 0)),
     [data]
   );
 
@@ -105,10 +103,7 @@ export const Accounts = () => {
       const account = formEventToAccount(event);
       // set id
       account.id =
-        Math.max(
-          0,
-          ...nextData.accounts.map((account: AccountType) => account.id)
-        ) + 1;
+        Math.max(0, ...nextData.accounts.map((account) => account.id)) + 1;
       nextData.accounts.push(account);
     });
     setAdding(false);
@@ -119,9 +114,7 @@ export const Accounts = () => {
     updateData((nextData) => {
       const account = formEventToAccount(event);
       account.id = id;
-      const index = nextData.accounts.findIndex(
-        (account: AccountType) => account.id === id
-      );
+      const index = nextData.accounts.findIndex((account) => account.id === id);
       nextData.accounts.splice(index, 1, account);
     });
     setEditing(0);
@@ -130,73 +123,74 @@ export const Accounts = () => {
   const delet = (id: number) => () => {
     updateData((nextData: DataType) => {
       nextData.accounts = nextData.accounts.filter(
-        (account: AccountType) => account.id === id
+        (account) => account.id === id
       );
     });
   };
 
   return (
-    <div>
+    <section>
       <header>
         <h2>Accounts</h2>
       </header>
       {!!data.accounts.length && (
-      <table className="records">
-        <thead>
-          <tr>
-            <th>name</th>
-            <th className="number">value</th>
-            <th className="number">return</th>
-            <th className="number">priority</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedAccounts.map((account) => {
-            const key: number = account.id;
-            const investmentsValue = account.investments
-              .reduce(
+        <table className="records">
+          <thead>
+            <tr>
+              <th>name</th>
+              <th className="number">value</th>
+              <th className="number">return</th>
+              <th className="number">priority</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedAccounts.map((account) => {
+              const key: number = account.id;
+              const investmentsValue = account.investments.reduce(
                 (tot, inv) => ((inv.shares || 0) * (inv.price || 0) || 0) + tot,
                 0
               );
-            return (
-              <tr key={key}>
-                {editing === key ? (
-                  <td colSpan={4}>
-                    <AccountForm
-                      account={account}
-                      onSubmit={update(key)}
-                      onCancel={() => setEditing(0)}
-                      onDelete={delet(key)}
-                    />
-                  </td>
-                ) : (
-                  [
-                    <td key="name">{account.name}</td>,
-                    <td key="value" className="number">{`$${(
-                      (account.value || 0) + investmentsValue
-                    ).toLocaleString()}`}</td>,
-                    <td key="return" className="number">
-                      {account.return && `${account.return}%`}
-                    </td>,
-                    <td key="priority" className="number">
-                      {account.priority}
-                    </td>,
-                    <td key="controls">
-                      <button onClick={startEditing(key)}>edit</button>
-                    </td>,
-                  ]
-                )}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+              return (
+                <tr key={key}>
+                  {editing === key ? (
+                    <td colSpan={5}>
+                      <AccountForm
+                        account={account}
+                        onSubmit={update(key)}
+                        onCancel={() => setEditing(0)}
+                        onDelete={delet(key)}
+                      />
+                    </td>
+                  ) : (
+                    [
+                      <td key="name">{account.name}</td>,
+                      <td key="value" className="number">{`$${(
+                        (account.value || 0) + investmentsValue
+                      ).toLocaleString()}`}</td>,
+                      <td key="return" className="number">
+                        {account.return && `${account.return}%`}
+                      </td>,
+                      <td key="priority" className="number">
+                        {account.priority}
+                      </td>,
+                      <td key="controls">
+                        <button onClick={startEditing(key)}>edit</button>
+                      </td>,
+                    ]
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       )}
-      {adding ? (
-        <AccountForm onSubmit={add} onCancel={() => setAdding(false)} />
-      ) : (
-        <button onClick={startAdding}>add</button>
-      )}
-    </div>
+      <footer>
+        {adding ? (
+          <AccountForm onSubmit={add} onCancel={() => setAdding(false)} />
+        ) : (
+          <button onClick={startAdding}>add account</button>
+        )}
+      </footer>
+    </section>
   );
 };
