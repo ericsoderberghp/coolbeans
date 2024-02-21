@@ -12,12 +12,16 @@ body {
   color: hsl(0 0% var(--foreground-lightness));
 }
 
-main {
-  margin: 1em 2em;
+main > header {
+  padding: 0 2em;
 }
 
-section footer {
-  padding: 0 1em;
+section {
+  padding: 1em 2em;
+}
+
+section > footer {
+  padding: 0 0.5em;
 }
 
 header,
@@ -36,7 +40,7 @@ button, input[type=file]::file-selector-button {
   color: hsl(0 0% var(--foreground-lightness) / 90%);
   background: none;
   border: 1px solid;
-  border-color: hsl(0 0% var(--foreground-lightness) / 30%);
+  border-color: hsl(0 0% var(--foreground-lightness) / 20%);
   border-radius: 0.25em;
 }
 
@@ -117,7 +121,7 @@ ol {
 }
 
 li {
-  padding: 0 1em;
+  padding: 0 0.5em;
   margin-bottom: 2px;
 }
 
@@ -184,6 +188,13 @@ form button, .controls button {
   font-size: 1.4em;
 }
 
-table.years {
-  margin: 0 1em;
+.tableContainer {
+  width: 100%;
+  overflow: auto;
+}
+
+table.years th:first-child {
+  position: sticky;
+  left: 0;
+  background-color: hsl(0 100% var(--background-lightness) / 90%);
 }

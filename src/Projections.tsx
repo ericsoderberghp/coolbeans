@@ -53,7 +53,7 @@ export const Projections = () => {
   const projections: ProjectionType[] = useMemo(() => {
     const startYear = new Date().getFullYear();
     const result = [];
-    const changed: { [key:string]: boolean } = {};
+    const changed: { [key: string]: boolean } = {};
 
     // initialize the first year based on current values
     let prior: ProjectionType = {
@@ -272,96 +272,101 @@ export const Projections = () => {
         </button>
       </header>
       <General />
-      <table className="years">
-        <thead>
-          <tr>
-            <th className="number">year</th>
-            <th className="number">age</th>
-            <th className="number">delta</th>
-            <th className="number">expenses</th>
-            {expanded &&
-              data.expenses.length > 1 &&
-              data.expenses.map((expense) => (
-                <th key={expense.id} className="number">
-                  {expense.name}
-                </th>
-              ))}
-            <th className="number">taxes</th>
-            <th className="number">income</th>
-            {expanded &&
-              data.incomes.map((income) => (
-                <th key={income.id} className="number">
-                  {income.name}
-                </th>
-              ))}
-            {/* <th className="number">dividends</th> */}
-            <th className="number">assets</th>
-            {expanded &&
-              data.accounts.map((account) => [
-                <th key={account.id} className="number">
-                  {account.name}
-                </th>,
-                account.investments.map((investment) => (
-                  <th key={investment.id} className="number">
-                    {investment.name}
-                  </th>
-                )),
-              ])}
-          </tr>
-        </thead>
-        <tbody>
-          {projections.map((projection) => (
-            <tr key={projection.year}>
-              <td className="number">{projection.year}</td>
-              <td className="number">{projection.age}</td>
-              <td className="number">
-                ${Math.round(projection.delta).toLocaleString()}
-              </td>
-              <td className="number">
-                ${Math.round(projection.expense).toLocaleString()}
-              </td>
+      <div className="tableContainer">
+        <table className="years">
+          <thead>
+            <tr>
+              <th className="number">year</th>
+              <th className="number">age</th>
+              <th className="number">delta</th>
+              <th className="number">expenses</th>
               {expanded &&
                 data.expenses.length > 1 &&
-                projection.expenses.map(({ expense: { id }, value }) => (
-                  <td key={id} className="number">
-                    ${Math.round(value).toLocaleString()}
-                  </td>
+                data.expenses.map((expense) => (
+                  <th key={expense.id} className="number">
+                    {expense.name}
+                  </th>
                 ))}
-              <td className="number">
-                ${Math.round(projection.tax).toLocaleString()}
-              </td>
-              <td className="number">
-                ${Math.round(projection.income).toLocaleString()}
-              </td>
+              <th className="number">taxes</th>
+              <th className="number">income</th>
               {expanded &&
-                projection.incomes.map(({ income: { id }, value }) => (
-                  <td key={id} className="number">
-                    ${Math.round(value).toLocaleString()}
-                  </td>
+                data.incomes.map((income) => (
+                  <th key={income.id} className="number">
+                    {income.name}
+                  </th>
                 ))}
-              {/* <td className="number">
+              {/* <th className="number">dividends</th> */}
+              <th className="number">assets</th>
+              {expanded &&
+                data.accounts.map((account) => [
+                  <th key={account.id} className="number">
+                    {account.name}
+                  </th>,
+                  account.investments.map((investment) => (
+                    <th key={investment.id} className="number">
+                      {investment.name}
+                    </th>
+                  )),
+                ])}
+            </tr>
+          </thead>
+          <tbody>
+            {projections.map((projection) => (
+              <tr key={projection.year}>
+                <th scope="row" className="number">{projection.year}</th>
+                <td className="number">{projection.age}</td>
+                <td className="number">
+                  ${Math.round(projection.delta).toLocaleString()}
+                </td>
+                <td className="number">
+                  ${Math.round(projection.expense).toLocaleString()}
+                </td>
+                {expanded &&
+                  data.expenses.length > 1 &&
+                  projection.expenses.map(({ expense: { id }, value }) => (
+                    <td key={id} className="number">
+                      ${Math.round(value).toLocaleString()}
+                    </td>
+                  ))}
+                <td className="number">
+                  ${Math.round(projection.tax).toLocaleString()}
+                </td>
+                <td className="number">
+                  ${Math.round(projection.income).toLocaleString()}
+                </td>
+                {expanded &&
+                  projection.incomes.map(({ income: { id }, value }) => (
+                    <td key={id} className="number">
+                      ${Math.round(value).toLocaleString()}
+                    </td>
+                  ))}
+                {/* <td className="number">
                 ${Math.round(projection.dividends).toLocaleString()}
               </td> */}
-              <td className="number">
-                ${Math.round(projection.assets).toLocaleString()}
-              </td>
-              {expanded &&
-                projection.accounts.map(
-                  ({ account: { id }, value, investments, change }) => [
-                    <td key={id} className={`number${change ? ' change' : ''}`}>
-                      ${Math.round(value).toLocaleString()}
-                    </td>,
-                    investments.map(({ investment: { id }, value }) => (
-                      <td key={id} className="number">
+                <td className="number">
+                  ${Math.round(projection.assets).toLocaleString()}
+                </td>
+                {expanded &&
+                  projection.accounts.map(
+                    ({ account: { id }, value, investments, change }) => [
+                      <td
+                        key={id}
+                        className={`number${change ? " change" : ""}`}
+                      >
                         ${Math.round(value).toLocaleString()}
-                      </td>
-                    )),
-                  ]
-                )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                      </td>,
+                      investments.map(({ investment: { id }, value }) => (
+                        <td key={id} className="number">
+                          ${Math.round(value).toLocaleString()}
+                        </td>
+                      )),
+                    ]
+                  )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 };
