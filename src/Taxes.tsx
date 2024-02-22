@@ -8,6 +8,7 @@ const formEventToTax = (event: React.FormEvent<HTMLFormElement>): TaxType => {
   const result: TaxType = {
     id: 0,
     name: formData.get("name") as string,
+    kind: formData.get("kind") as "income" | "gains",
     rates: [],
   };
   return result;
@@ -22,7 +23,7 @@ type TaxFormProps = {
 
 const TaxForm = (props: TaxFormProps) => {
   const {
-    tax = { id: 0, name: "" } as TaxType,
+    tax = { id: 0, name: "", kind: "income" } as TaxType,
     onCancel,
     onDelete,
     onSubmit,
@@ -32,6 +33,29 @@ const TaxForm = (props: TaxFormProps) => {
       <label>
         name
         <input name="name" type="text" defaultValue={tax.name} />
+      </label>
+      <label>
+        kind
+        <ul className="options">
+          <label>
+            <input
+              name="kind"
+              type="radio"
+              value="income"
+              defaultChecked={tax.kind === "income"}
+            />
+            income
+          </label>
+          <label>
+            <input
+              name="kind"
+              type="radio"
+              value="gains"
+              defaultChecked={tax.kind === "gains"}
+            />
+            capital gains
+          </label>
+        </ul>
       </label>
       <footer>
         <span className="kind">Tax</span>
@@ -45,16 +69,63 @@ const TaxForm = (props: TaxFormProps) => {
   );
 };
 
+type TaxProps = {
+  tax: TaxType;
+};
+
+export const Tax = (props: TaxProps) => {
+  const { tax } = props;
+  const id = tax.id;
+  const { updateData } = useContext(AppContext);
+  const [editing, setEditing] = useState(false);
+
+  const update = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    updateData((nextData) => {
+      const nextTax = formEventToTax(event);
+      nextTax.id = id;
+      nextTax.rates = tax.rates;
+      const index = nextData.taxes.findIndex((tax: TaxType) => tax.id === id);
+      nextData.taxes.splice(index, 1, nextTax);
+    });
+    setEditing(false);
+  };
+
+  const delet = () => {
+    updateData((nextData: DataType) => {
+      nextData.taxes = nextData.taxes.filter((tax: TaxType) => tax.id !== id);
+    });
+  };
+
+  return (
+    <li>
+      {editing ? (
+        <TaxForm
+          tax={tax}
+          onSubmit={update}
+          onCancel={() => setEditing(false)}
+          onDelete={delet}
+        />
+      ) : (
+        [
+          <header key="header">
+            <h3>{tax.name}</h3>
+            {tax.kind === "gains" ? "capital gains" : tax.kind}
+            <button onClick={() => setEditing(true)}>edit</button>
+          </header>,
+          <Rates key="rates" taxId={tax.id} />,
+        ]
+      )}
+    </li>
+  );
+};
+
 export const Taxes = () => {
   const { data, updateData } = useContext(AppContext);
   const [show, setShow] = useState(false);
-  const [addingTax, setAddingTax] = useState(false);
-  const [editingTax, setEditingTax] = useState(0);
+  const [adding, setAdding] = useState(false);
 
-  const startAddingTax = () => setAddingTax(!addingTax);
-  const startEditingTax = (id: number) => () => setEditingTax(id);
-
-  const addTax = (event: React.FormEvent<HTMLFormElement>) => {
+  const add = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     updateData((nextData) => {
       const tax = formEventToTax(event);
@@ -62,25 +133,7 @@ export const Taxes = () => {
       tax.id = Math.max(0, ...nextData.taxes.map((tax: TaxType) => tax.id)) + 1;
       nextData.taxes.push(tax);
     });
-    setAddingTax(false);
-  };
-
-  const updateTax =
-    (id: number) => (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      updateData((nextData) => {
-        const tax = formEventToTax(event);
-        tax.id = id;
-        const index = nextData.taxes.findIndex((tax: TaxType) => tax.id === id);
-        nextData.taxes.splice(index, 1, tax);
-      });
-      setEditingTax(0);
-    };
-
-  const deleteTax = (id: number) => () => {
-    updateData((nextData: DataType) => {
-      nextData.taxes = nextData.taxes.filter((tax: TaxType) => tax.id !== id);
-    });
+    setAdding(false);
   };
 
   return (
@@ -91,36 +144,15 @@ export const Taxes = () => {
       </header>
       {show && [
         <ul key="list">
-          {!!data.taxes.length &&
-            data.taxes.map((tax) => {
-              const key: number = tax.id;
-              return (
-                <li key={key}>
-                  {editingTax === key ? (
-                    <TaxForm
-                      tax={tax}
-                      onSubmit={updateTax(key)}
-                      onCancel={() => setEditingTax(0)}
-                      onDelete={deleteTax(key)}
-                    />
-                  ) : (
-                    [
-                      <header key="header">
-                        <h3>{tax.name}</h3>
-                        <button onClick={startEditingTax(key)}>edit</button>
-                      </header>,
-                      <Rates key="rates" taxId={tax.id} />,
-                    ]
-                  )}
-                </li>
-              );
-            })}
+          {data.taxes.map((tax) => (
+            <Tax tax={tax} />
+          ))}
         </ul>,
         <footer key="footer">
-          {addingTax ? (
-            <TaxForm onSubmit={addTax} onCancel={() => setAddingTax(false)} />
+          {adding ? (
+            <TaxForm onSubmit={add} onCancel={() => setAdding(false)} />
           ) : (
-            <button onClick={startAddingTax}>add tax</button>
+            <button onClick={() => setAdding(true)}>add tax</button>
           )}
         </footer>,
       ]}

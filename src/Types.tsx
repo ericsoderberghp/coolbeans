@@ -24,15 +24,15 @@ export type InvestmentType = {
   shares?: number;
   basis?: number;
   price?: number;
-  dividend?: number;
-  return?: number; // yearly
+  dividend?: number; // yearly percentage
+  return?: number; // yearly percentage
   priority?: number;
 };
 
 export type IncomeType = {
   id: number;
   name: string;
-  value: number; // yearly
+  value: number; // yearly value
   start?: string; // e.g. '2024-01-01'
   stop?: string;
 };
@@ -40,7 +40,7 @@ export type IncomeType = {
 export type ExpenseType = {
   id: number;
   name: string;
-  value: number; // yearly
+  value: number; // yearly value
   start?: string;
   stop?: string;
 };
@@ -48,16 +48,17 @@ export type ExpenseType = {
 export type TaxType = {
   id: number;
   name: string;
+  kind: "income" | "gains";
   rates: RateType[];
 };
 
 export type RateType = {
   id: number;
-  rate: number; // yearly
+  rate: number; // yearly percentage
   min?: number;
   max?: number;
-  start?: string;
-  end?: string;
+  // start?: string;
+  // end?: string;
 };
 
 export type DataType = {

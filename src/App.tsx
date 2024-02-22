@@ -41,13 +41,7 @@ function App() {
     if (buffer) {
       const data = JSON.parse(buffer);
       // upgrades
-      if (!data.general) {
-        data.general = data.global;
-        delete data.global;
-      }
-      // if (!data.global)
-      //   data.global = { inflation: 0.04, age: 55, lifeExpectancy: 95 };
-      // if (!data.taxes) data.taxes = [];
+      // data.taxes = initialData.taxes;
       setData(data);
     }
   }, []);

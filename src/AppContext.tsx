@@ -1,16 +1,17 @@
 import { createContext } from "react";
-import { DataType } from "./Types";
+import { DataType, TaxType } from "./Types";
 
 export type AppContextType = {
   data: DataType;
   updateData: (func: (d: DataType) => void) => void;
 };
 
-// from https://www.irs.gov/filing/federal-income-tax-rates-and-brackets
-const initialTaxes = [
+const initialTaxes : TaxType[] = [
   {
     id: 1,
-    name: "US income",
+    name: "Federal",
+    kind: "income",
+    // from https://www.irs.gov/filing/federal-income-tax-rates-and-brackets
     rates: [
       { id: 1, rate: 10, min: 0, max: 20000 },
       { id: 2, rate: 12, min: 22001, max: 89450 },
@@ -21,8 +22,20 @@ const initialTaxes = [
     ],
   },
   {
-    id: 7,
-    name: "CA income",
+    id: 2,
+    name: "Federal",
+    kind: "gains",
+    // from https://www.irs.gov/taxtopics/tc409
+    rates: [
+      { id: 1, rate: 0, min: 0, max: 89250 },
+      { id: 2, rate: 15, min: 89251, max: 553850 },
+      { id: 3, rate: 20, min: 553851 },
+    ],
+  },
+  {
+    id: 3,
+    name: "State CA",
+    kind: "income",
     rates: [
       { id: 1, rate: 1, min: 0, max: 20197 },
       { id: 2, rate: 2, min: 20198, max: 47883 },

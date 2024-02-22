@@ -1,10 +1,14 @@
 TODO:
-- text and fix keyboard interaction
+- handle taxes on sales from non-qualified accounts
 - handle taxes on qualified (IRA) withdrawls
-- handle taxes on capital gains from investments
+- handle taxes on capital gains from investments sold from non-qualified accounts
+- user guidance, help, explanations, disclaimer at the bottom
+- text and fix keyboard interaction
 - invest extra income
+- debt, mortgages, etc.
 - multiple data sets, to allow showing different scenarios
-- implement asset classes?
+- implement asset classes: large cap, small cap, international, alternative
+- enhance social security with per-age payments and choice on when to start claiming
 - use API to get current stock prices
 - Medicare
 - charts

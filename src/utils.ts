@@ -9,3 +9,6 @@ export const humanDate = (date?: string) => {
   }
   return date;
 };
+
+export const humanDollars = (value?: number) =>
+  value ? `$${Math.round(value).toLocaleString()}` : "";

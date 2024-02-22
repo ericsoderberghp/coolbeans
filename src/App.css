@@ -74,6 +74,24 @@ label {
   white-space: nowrap
 }
 
+.options {
+  width: 12em;
+  padding: var(--quarter-size) var(--half-size);
+  border: 1px solid hsl(0 0% var(--foreground-lightness) / 30%);
+  margin-bottom: -1px;
+}
+
+.options label {
+  grid-template-columns: auto 1fr;
+  gap: var(--half-size);
+  font-weight: normal;
+}
+
+.options input {
+  width: auto;
+  margin: 0;
+}
+
 input {
   font-family: 'courier new', courier, monospace;
   font-size: 1em;
