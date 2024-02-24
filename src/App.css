@@ -239,17 +239,23 @@ div.controls button {
 .tableContainer {
   width: 100%;
   overflow: auto;
+  max-height: calc(100vh - 1em);
 }
 
 table.years th:first-child {
   position: sticky;
   left: 0;
-  background-color: hsl(0 100% var(--background-lightness) / 90%);
+  background-color: hsl(40 100% var(--background-lightness) / 90%);
 }
 
-/* 
-table.years thead th:first-child {
+table.years thead th {
   position: sticky;
   top: 0;
-  background-color: hsl(0 100% var(--background-lightness) / 90%);
-} */
+  padding: .5em;
+  background-color: hsl(40 100% var(--background-lightness) / 90%);
+}
+
+table.years thead th:first-child {
+  left: 0;
+  z-index: 2;
+}

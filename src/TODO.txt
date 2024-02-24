@@ -1,5 +1,4 @@
 TODO:
-- years table sticky header
 - user guidance, help, explanations, disclaimer at the bottom
 - test and fix keyboard interaction
 - invest extra income
