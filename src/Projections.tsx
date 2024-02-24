@@ -17,14 +17,16 @@ type ProjectionType = {
   accounts: {
     account: AccountType;
     value: number;
-    dividends: number;
+    unsoldValue: number; // used to estimate gains on non-qualified accounts without assets
+    dividends: number; // for non-qualified accounts
     sales: number;
     gains: number;
     investments: {
       investment: InvestmentType;
-      value: number; // generally price * shares
-      dividends: number;
       shares: number; // adjusted based on sales
+      value: number; // generally price * shares
+      dividends: number; // for non-qualified accounts
+      sales: number;
       gains: number;
     }[];
   }[];
@@ -43,6 +45,12 @@ type ProjectionType = {
   income: number;
   tax: number;
   expense: number;
+  shortfall: number;
+  transactions: {
+    name: string;
+    shares?: number;
+    value: number;
+  }[];
 };
 
 const percentageOf = (value: number, percentage: number = 0) =>
@@ -59,6 +67,17 @@ const within = (year: number, start?: string, stop?: string) => {
 };
 
 const total = (tot: number, value: number) => tot + value;
+
+const shouldReinvestDividends = (account: AccountType) =>
+  account.kind === "IRA" || account.kind === "Roth IRA";
+
+const shouldClaimGainsWhenSelling = (account: AccountType) =>
+  account.kind === "brokerage";
+
+const shouldClaimIncomeWhenSelling = (account: AccountType) =>
+  account.kind === "IRA" ||
+  account.kind === "Roth IRA" ||
+  account.kind === "pension";
 
 // TODO: add comments!
 
@@ -103,15 +122,17 @@ const initialProjection = (data: DataType, year: number) => {
             const { shares = 0, price = 0 } = investment;
             const value = shares * price;
             const dividends = percentageOf(value, investment.dividend);
-            return { investment, value, dividends, shares, gains: 0 };
+            return { investment, value, dividends, shares, sales: 0, gains: 0 };
           });
+        const value =
+          account.value || // if account has no value, sum investment values
+          investments.map((i) => i.value).reduce(total, 0) ||
+          0;
         return {
           account,
-          value:
-            account.value || // if account has no value, sum investment values
-            investments.map((i) => i.value).reduce(total, 0) ||
-            0,
-          dividends: account.qualified
+          value,
+          unsoldValue: value, // used to estimate gains when no investments
+          dividends: shouldReinvestDividends(account)
             ? 0
             : (account.value &&
                 account.dividend &&
@@ -137,6 +158,8 @@ const initialProjection = (data: DataType, year: number) => {
     income: 0,
     tax: 0,
     expense: 0,
+    shortfall: 0,
+    transactions: [],
   };
 
   result.assets = result.accounts.map((a) => a.value).reduce(total, 0);
@@ -150,8 +173,8 @@ const initialProjection = (data: DataType, year: number) => {
 
 const accountPerformance = (prior: ProjectionType) =>
   prior.accounts.map((a) => {
-    const { account, value: priorValue } = a;
-    const { qualified, return: aReturn } = account;
+    const { account, value: priorValue, unsoldValue: priorUnsoldValue } = a;
+    const { kind, return: aReturn } = account;
 
     const investments = a.investments.map((i) => {
       const { investment, value: priorValue, shares } = i;
@@ -162,13 +185,13 @@ const accountPerformance = (prior: ProjectionType) =>
       // re-invest qualified dividends
       const value =
         incrementByPercentage(priorValue, iReturn) +
-        (qualified ? dividends : 0);
+        (shouldReinvestDividends(account) ? dividends : 0);
       return {
         investment,
         value,
-        // only inclue non-qualified dividends as income
-        dividends: qualified ? 0 : dividends,
+        dividends: shouldReinvestDividends(account) ? 0 : dividends,
         shares, // carry over
+        sales: 0,
         gains: 0,
       };
     });
@@ -180,8 +203,19 @@ const accountPerformance = (prior: ProjectionType) =>
     const value = account.value
       ? incrementByPercentage(priorValue, aReturn)
       : investmentsValue;
+    const unsoldValue = account.value
+      ? incrementByPercentage(priorUnsoldValue, aReturn)
+      : 0;
 
-    return { account, value, dividends, sales: 0, gains: 0, investments };
+    return {
+      account,
+      value,
+      unsoldValue,
+      dividends,
+      sales: 0,
+      gains: 0,
+      investments,
+    };
   });
 
 const adjustIncomesForInflation = (
@@ -230,10 +264,10 @@ export const Projections = () => {
 
   const projections: ProjectionType[] = useMemo(() => {
     const startYear = new Date().getFullYear();
-    const result = [];
 
     // initialize the first year based on current values
     let prior = initialProjection(data, startYear);
+    const result = [];
 
     // project future years
     while (prior.age < data.general.until) {
@@ -251,7 +285,8 @@ export const Projections = () => {
       const expenses = adjustExpensesForInflation(prior, data, year);
 
       // include non-qualified dividends in income
-      const income = incomes.map((i) => i.value).reduce(total, 0) + dividends;
+      // if we withdraw from qualified accounts, that will count as income
+      let income = incomes.map((i) => i.value).reduce(total, 0) + dividends;
       const expense = expenses.map((e) => e.value).reduce(total, 0);
 
       // tracks selling assets to pay for expenses and taxes
@@ -261,38 +296,53 @@ export const Projections = () => {
       // determine the initial tax for the income
       // if we sell any stocks below, any capital gains will increase tax
       let tax = calculateTax(income, gains, data.taxes);
+      const transactions = [];
 
-      if (income + sales < tax + expense) {
-        let shortfall = tax + expense - (income + sales);
-
+      let shortfall = tax + expense - (income + sales);
+      if (shortfall > 0) {
         // pull from assets, starting from lowest priority
         const orderedAccounts = accounts.slice(0);
 
-        while (shortfall && orderedAccounts.length) {
+        while (shortfall > 0 && orderedAccounts.length) {
           const acc = orderedAccounts.shift();
           if (acc) {
             if (acc.investments.length) {
+              // this account has investments, sell something from them
               const orderedInvestments = acc.investments.slice(0);
-              while (shortfall && orderedInvestments.length) {
+              while (shortfall > 0 && orderedInvestments.length) {
                 const inv = orderedInvestments.shift();
                 if (inv && inv.value) {
                   const { basis = 0, shares = 0 } = inv.investment;
                   const minSale = Math.min(shortfall, inv.value);
-                  // inv.value is what we expect it to be for this year
-                  // based on investment returns.
+                  // inv.value is this year's value based on investment returns.
                   // inv.shares is how many shares we have left.
                   const shareValue = inv.value / inv.shares;
                   // no fractional shares
                   const sharesSold = Math.ceil(minSale / shareValue);
-                  const sales = shareValue * sharesSold;
-                  const basisShareValue = Math.ceil(basis / shares);
-                  const investmentGains = sales - basisShareValue * sharesSold;
-                  inv.value -= sales;
+                  const sale = shareValue * sharesSold;
+                  inv.value -= sale;
                   inv.shares -= sharesSold;
-                  inv.gains = investmentGains;
-                  shortfall -= sales;
-                  gains += investmentGains;
-                  // re-calculate tax since we've increased gains
+                  inv.sales += sale;
+                  shortfall -= sale;
+                  sales += sale;
+
+                  transactions.push({
+                    name: inv.investment.name,
+                    shares: sharesSold,
+                    value: sale,
+                  });
+
+                  if (shouldClaimIncomeWhenSelling(acc.account)) {
+                    // for qualified accounts, withdrawing is income
+                    income += sale;
+                  } else if (shouldClaimGainsWhenSelling(acc.account)) {
+                    const basisShareValue = Math.ceil(basis / shares);
+                    const investmentGains = sale - basisShareValue * sharesSold;
+                    inv.gains = investmentGains;
+                    gains += investmentGains;
+                  }
+
+                  // re-calculate tax since we've increased gains or income
                   tax = calculateTax(income, gains, data.taxes);
                   // in case we could pay any additional tax from the same
                   // investment, re-evaluate it
@@ -301,11 +351,34 @@ export const Projections = () => {
                 }
               }
             } else {
-              const sale = Math.min(shortfall, acc.value);
-              acc.value -= sale;
-              shortfall -= sale;
-              acc.sales += sale;
-              // TODO: calculate capital gains when no investments
+              // no investments for this account, just reduce account value
+              if (acc.value) {
+                const sale = Math.min(shortfall, acc.value);
+                acc.value -= sale;
+                acc.sales += sale;
+                shortfall -= sale;
+                sales += sale;
+
+                transactions.push({
+                  name: acc.account.name,
+                  value: sale,
+                });
+
+                if (shouldClaimIncomeWhenSelling(acc.account)) {
+                  // for qualified accounts, withdrawing is income
+                  income += sale;
+                } else if (shouldClaimGainsWhenSelling(acc.account)) {
+                  // estimate gains for non-qualified accounts without investments
+                  // how much has this account grown up to now?
+                  const increase = acc.unsoldValue - (acc.account.value || 0);
+                  // percent of original assets in the account
+                  const percent = sale / acc.unsoldValue;
+                  gains += increase * percent;
+                }
+
+                // re-calculate tax since we've increased gains or income
+                tax = calculateTax(income, gains, data.taxes);
+              }
             }
           }
         }
@@ -326,6 +399,8 @@ export const Projections = () => {
         income,
         tax,
         expense,
+        shortfall: transactions.map((t) => t.value).reduce(total, 0),
+        transactions,
       };
       result.push(current);
       prior = current;
@@ -349,6 +424,7 @@ export const Projections = () => {
             <tr>
               <th className="number">year</th>
               <th className="number">age</th>
+              {expanded && <th className="number">shortfall</th>}
               <th className="number">expenses</th>
               {expanded &&
                 data.expenses.length > 1 &&
@@ -383,12 +459,17 @@ export const Projections = () => {
             </tr>
           </thead>
           <tbody>
-            {projections.map((projection) => (
+            {projections.map((projection) => [
               <tr key={projection.year}>
                 <th scope="row" className="number">
                   {projection.year}
                 </th>
                 <td className="number">{projection.age}</td>
+                {expanded && (
+                  <td className="number">
+                    {humanDollars(projection.shortfall)}
+                  </td>
+                )}
                 <td className="number">{humanDollars(projection.expense)}</td>
                 {expanded &&
                   data.expenses.length > 1 &&
@@ -422,8 +503,25 @@ export const Projections = () => {
                       )),
                     ]
                   )}
-              </tr>
-            ))}
+              </tr>,
+              expanded && projection.transactions && (
+                <tr>
+                  <td></td>
+                  <td colSpan={20}>
+                    <table>
+                      {projection.transactions.map((t) => (
+                        <tr>
+                          <td>sold</td>
+                          <td>{t.name}</td>
+                          <td className="number">{t.shares}</td>
+                          <td className="number">{humanDollars(t.value)}</td>
+                        </tr>
+                      ))}
+                    </table>
+                  </td>
+                </tr>
+              ),
+            ])}
           </tbody>
         </table>
       </div>

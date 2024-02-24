@@ -1,15 +1,21 @@
-
 export type GeneralType = {
   inflation: number;
   age: number;
   until: number;
 };
 
+export type AccountKindType =
+  | "IRA"
+  | "401k"
+  | "pension"
+  | "Roth IRA"
+  | "VUL"
+  | "brokerage";
+
 export type AccountType = {
   id: number;
   name: string;
-  // qualified means tax-deferred, taxes are paid on withdrawl
-  qualified: boolean;
+  kind: AccountKindType;
   // allow not bothering with investments by setting value and return on account
   value?: number;
   return?: number;

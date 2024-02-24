@@ -41,7 +41,10 @@ function App() {
     if (buffer) {
       const data = JSON.parse(buffer);
       // upgrades
-      // data.taxes = initialData.taxes;
+      // convert account.qualified to account.kind = "IRA"
+      // data.accounts.forEach((account: any) => {
+      //   if (!account.kind) account.kind = account.qualified ? "IRA" : "brokerage";
+      // })
       setData(data);
     }
   }, []);

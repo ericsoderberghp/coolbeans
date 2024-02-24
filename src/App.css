@@ -1,3 +1,9 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 :root {
   --size: 24px;
   --half-size: calc(var(--size) / 2);
@@ -12,7 +18,7 @@ body {
   color: hsl(0 0% var(--foreground-lightness));
 }
 
-main > header {
+main>header {
   padding: 0 2em;
 }
 
@@ -24,7 +30,8 @@ section {
   padding: 1em;
 }
 
-section > footer, .subSection > footer {
+section>footer,
+.subSection>footer {
   padding: 0 0.5em;
 }
 
@@ -47,7 +54,8 @@ h3 {
   margin: 0;
 }
 
-button, input[type=file]::file-selector-button {
+button,
+input[type=file]::file-selector-button {
   appearance: none;
   font: inherit;
   padding: 0 var(--quarter-size);
@@ -58,7 +66,8 @@ button, input[type=file]::file-selector-button {
   border-radius: 0.25em;
 }
 
-button:hover, .controls button:hover {
+button:hover,
+.controls button:hover {
   cursor: pointer;
   background-color: hsl(0 0% var(--foreground-lightness) / 80%);
   color: hsl(0 0% var(--background-lightness));
@@ -92,12 +101,15 @@ label {
   margin: 0;
 }
 
-input {
+input,
+select {
+  appearance: none;
   font-family: 'courier new', courier, monospace;
   font-size: 1em;
   background-color: inherit;
   color: inherit;
   border: 1px solid hsl(0 0% var(--foreground-lightness) / 30%);
+  border-radius: 0;
   padding: var(--quarter-size) var(--half-size);
   margin-bottom: -1px;
   width: 12em;
@@ -156,7 +168,7 @@ li {
   margin-bottom: 1em;
 }
 
-li > header {
+li>header {
   padding: 0 0.5em;
 }
 
@@ -173,7 +185,8 @@ th {
   vertical-align: bottom;
 }
 
-table.years tr:hover td, table.years tr:hover th {
+table.years tr:hover td,
+table.years tr:hover th {
   background-color: hsl(0 0% var(--foreground-lightness) / 5%);
 }
 
@@ -211,7 +224,8 @@ form footer {
   gap: var(--size);
 }
 
-form button, div.controls button {
+form button,
+div.controls button {
   font-weight: bold;
   background-color: hsl(0 0% var(--foreground-lightness) / 5%);
   color: inherit;
@@ -232,3 +246,10 @@ table.years th:first-child {
   left: 0;
   background-color: hsl(0 100% var(--background-lightness) / 90%);
 }
+
+/* 
+table.years thead th:first-child {
+  position: sticky;
+  top: 0;
+  background-color: hsl(0 100% var(--background-lightness) / 90%);
+} */

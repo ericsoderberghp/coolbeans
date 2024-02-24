@@ -1,6 +1,6 @@
 import React, { useContext, useMemo, useState } from "react";
 import { AppContext } from "./AppContext";
-import { AccountType, DataType } from "./Types";
+import { AccountType, AccountKindType, DataType } from "./Types";
 import { Investments } from "./Investments";
 
 const formDataNumericValue = (formData: FormData, name: string) =>
@@ -13,7 +13,7 @@ const formEventToAccount = (
   const result: AccountType = {
     id: 0,
     name: formData.get("name") as string,
-    qualified: !!formData.get("qualified"),
+    kind: formData.get("kind") as AccountKindType,
     value: formDataNumericValue(formData, "value"),
     return: formDataNumericValue(formData, "return"),
     dividend: formDataNumericValue(formData, "dividend"),
@@ -52,12 +52,15 @@ const AccountForm = (props: AccountFormProps) => {
         <input name="value" type="number" defaultValue={account.value} />
       </label>
       <label>
-        qualified
-        <input
-          name="qualified"
-          type="checkbox"
-          defaultChecked={account.qualified}
-        />
+        kind
+        <select name="kind" defaultValue={account.kind}>
+          <option>IRA</option>
+          <option>401k</option>
+          <option>Roth IRA</option>
+          <option>VUL</option>
+          <option>brokerage</option>
+          <option>pension</option>
+        </select>
       </label>
       <label>
         return %
@@ -136,7 +139,7 @@ export const Account = (props: AccountProps) => {
   return [
     <tr key={id}>
       {editing ? (
-        <td colSpan={5}>
+        <td colSpan={7}>
           <AccountForm
             account={account}
             onSubmit={update}
@@ -147,6 +150,7 @@ export const Account = (props: AccountProps) => {
       ) : (
         [
           <td key="name">{account.name}</td>,
+          <td key="kind">{account.kind}</td>,
           <td key="value" className="number">{`$${(
             (account.value || 0) + investmentsValue
           ).toLocaleString()}`}</td>,
@@ -170,7 +174,7 @@ export const Account = (props: AccountProps) => {
     </tr>,
     showInvestments ? (
       <tr key="investments">
-        <td colSpan={6}>
+        <td colSpan={7}>
           <Investments account={account} />
         </td>
       </tr>
@@ -210,10 +214,12 @@ export const Accounts = () => {
           <thead>
             <tr>
               <th>name</th>
+              <th>kind</th>
               <th className="number">value</th>
               <th className="number">return</th>
               <th className="number">dividend</th>
               <th className="number">priority</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
