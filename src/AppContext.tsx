@@ -4,6 +4,7 @@ import { DataType, TaxType } from "./Types";
 export type AppContextType = {
   data: DataType;
   updateData: (func: (d: DataType) => void) => void;
+  showHelp: boolean;
 };
 
 const initialTaxes : TaxType[] = [
@@ -61,4 +62,5 @@ const defaultUpdateData = (func: (d: DataType) => void) => {};
 export const AppContext = createContext<AppContextType>({
   data: initialData,
   updateData: defaultUpdateData,
+  showHelp: true,
 });

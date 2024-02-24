@@ -65,7 +65,7 @@ const IncomeForm = (props: IncomeFormProps) => {
 };
 
 export const Incomes = () => {
-  const { data, updateData } = useContext(AppContext);
+  const { data, updateData, showHelp } = useContext(AppContext);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(0);
 
@@ -111,59 +111,75 @@ export const Incomes = () => {
 
   return (
     <section>
-      <header>
-        <h2>Income</h2>
-      </header>
-      {!!data.incomes.length && (
-        <table className="records">
-          <thead>
-            <tr>
-              <th>name</th>
-              <th>per year</th>
-              <th>start</th>
-              <th>stop</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.incomes.map((income) => {
-              const key: number = income.id;
-              return (
-                <tr key={key}>
-                  {editing === key ? (
-                    <td colSpan={5}>
-                      <IncomeForm
-                        income={income}
-                        onSubmit={update(key)}
-                        onCancel={() => setEditing(0)}
-                        onDelete={delet(key)}
-                      />
-                    </td>
-                  ) : (
-                    [
-                      <td key="name">{income.name}</td>,
-                      <td key="value" className="number">{`$${(
-                        income.value || 0
-                      ).toLocaleString()}`}</td>,
-                      <td key="start">{humanDate(income.start)}</td>,
-                      <td key="stop">{humanDate(income.stop)}</td>,
-                      <td key="controls">
-                        <button onClick={startEditing(key)}>edit</button>
-                      </td>,
-                    ]
-                  )}
+      <div className="contentContainer">
+        <div className="content">
+          <header>
+            <h2>Income</h2>
+          </header>
+
+          {!!data.incomes.length && (
+            <table className="records">
+              <thead>
+                <tr>
+                  <th>name</th>
+                  <th>per year</th>
+                  <th>start</th>
+                  <th>stop</th>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
-      <footer>
-        {adding ? (
-          <IncomeForm onSubmit={add} onCancel={() => setAdding(false)} />
-        ) : (
-          <button onClick={startAdding}>add income</button>
+              </thead>
+              <tbody>
+                {data.incomes.map((income) => {
+                  const key: number = income.id;
+                  return (
+                    <tr key={key}>
+                      {editing === key ? (
+                        <td colSpan={5}>
+                          <IncomeForm
+                            income={income}
+                            onSubmit={update(key)}
+                            onCancel={() => setEditing(0)}
+                            onDelete={delet(key)}
+                          />
+                        </td>
+                      ) : (
+                        [
+                          <td key="name">{income.name}</td>,
+                          <td key="value" className="number">{`$${(
+                            income.value || 0
+                          ).toLocaleString()}`}</td>,
+                          <td key="start">{humanDate(income.start)}</td>,
+                          <td key="stop">{humanDate(income.stop)}</td>,
+                          <td key="controls">
+                            <button onClick={startEditing(key)}>edit</button>
+                          </td>,
+                        ]
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+          <footer>
+            {adding ? (
+              <IncomeForm onSubmit={add} onCancel={() => setAdding(false)} />
+            ) : (
+              <button onClick={startAdding}>add income</button>
+            )}
+          </footer>
+        </div>
+
+        {showHelp && (
+          <aside className="help">
+            <p>
+              Add any income you are expecting as a per-year value. You can set
+              dates on when a source of income starts and stops. For example,
+              you might add one for Social Security starting at the year you
+              start to claim.
+            </p>
+          </aside>
         )}
-      </footer>
+      </div>
     </section>
   );
 };

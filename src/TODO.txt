@@ -1,8 +1,8 @@
 TODO:
-- user guidance, help, explanations, disclaimer at the bottom
-- test and fix keyboard interaction
+- test keyboard interaction
 - invest extra income
 - debt, mortgages, etc.
+
 - multiple data sets, to allow showing different scenarios
 - implement asset classes: large cap, small cap, international, alternative
 

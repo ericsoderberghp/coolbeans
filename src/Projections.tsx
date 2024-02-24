@@ -174,7 +174,7 @@ const initialProjection = (data: DataType, year: number) => {
 const accountPerformance = (prior: ProjectionType) =>
   prior.accounts.map((a) => {
     const { account, value: priorValue, unsoldValue: priorUnsoldValue } = a;
-    const { kind, return: aReturn } = account;
+    const { return: aReturn } = account;
 
     const investments = a.investments.map((i) => {
       const { investment, value: priorValue, shares } = i;
@@ -259,7 +259,7 @@ const adjustExpensesForInflation = (
   });
 
 export const Projections = () => {
-  const { data } = useContext(AppContext);
+  const { data, showHelp } = useContext(AppContext);
   const [expanded, setExpanded] = useState(true);
 
   const projections: ProjectionType[] = useMemo(() => {
@@ -411,13 +411,31 @@ export const Projections = () => {
 
   return (
     <section>
-      <header>
-        <h2>Projections</h2>
-        <button onClick={() => setExpanded(!expanded)}>
-          {expanded ? "collapse" : "expand"}
-        </button>
-      </header>
-      <General />
+      <div className="contentContainer">
+        <div className="content">
+          <header>
+            <h2>Projections</h2>
+            <button onClick={() => setExpanded(!expanded)}>
+              {expanded ? "collapse" : "expand"}
+            </button>
+          </header>
+          <General />
+        </div>
+
+        {showHelp && (
+          <aside className="help">
+            <p>
+              Projections show where you stand each year. Income and expenses
+              are updated based on inflation each year. Accounts and investments
+              return dividends and are updated based on their expected return.
+              IRA accounts automatically re-invest dividends. Brokerage accounts
+              return dividends as income. Selling from IRA and pension accounts
+              are handled as regular income. Selling from other accounts are
+              handled as capital gains. Taxes are applied to sales.
+            </p>
+          </aside>
+        )}
+      </div>
       <div className="tableContainer">
         <table className="years">
           <thead>
@@ -505,12 +523,12 @@ export const Projections = () => {
                   )}
               </tr>,
               expanded && projection.transactions && (
-                <tr>
+                <tr className="transactions">
                   <td></td>
                   <td colSpan={20}>
                     <table>
                       {projection.transactions.map((t) => (
-                        <tr>
+                        <tr className="transactions">
                           <td>sold</td>
                           <td>{t.name}</td>
                           <td className="number">{t.shares}</td>

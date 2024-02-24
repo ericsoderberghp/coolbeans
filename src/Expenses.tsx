@@ -67,7 +67,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
 };
 
 export const Expenses = () => {
-  const { data, updateData } = useContext(AppContext);
+  const { data, updateData, showHelp } = useContext(AppContext);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(0);
 
@@ -113,59 +113,74 @@ export const Expenses = () => {
 
   return (
     <section>
-      <header>
-        <h2>Expenses</h2>
-      </header>
-      {!!data.expenses.length && (
-        <table className="records">
-          <thead>
-            <tr>
-              <th>name</th>
-              <th>per year</th>
-              <th>start</th>
-              <th>stop</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.expenses.map((expense) => {
-              const key: number = expense.id;
-              return (
-                <tr key={key}>
-                  {editing === key ? (
-                    <td colSpan={5}>
-                      <ExpenseForm
-                        expense={expense}
-                        onSubmit={update(key)}
-                        onCancel={() => setEditing(0)}
-                        onDelete={delet(key)}
-                      />
-                    </td>
-                  ) : (
-                    [
-                      <td key="name">{expense.name}</td>,
-                      <td key="value" className="number">{`$${(
-                        expense.value || 0
-                      ).toLocaleString()}`}</td>,
-                      <td key="start">{humanDate(expense.start)}</td>,
-                      <td key="stop">{humanDate(expense.stop)}</td>,
-                      <td key="controls">
-                        <button onClick={startEditing(key)}>edit</button>
-                      </td>,
-                    ]
-                  )}
+      <div className="contentContainer">
+        <div className="content">
+          <header>
+            <h2>Expenses</h2>
+          </header>
+
+          {!!data.expenses.length && (
+            <table className="records">
+              <thead>
+                <tr>
+                  <th>name</th>
+                  <th>per year</th>
+                  <th>start</th>
+                  <th>stop</th>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
-      <footer>
-        {adding ? (
-          <ExpenseForm onSubmit={add} onCancel={() => setAdding(false)} />
-        ) : (
-          <button onClick={startAdding}>add expense</button>
+              </thead>
+              <tbody>
+                {data.expenses.map((expense) => {
+                  const key: number = expense.id;
+                  return (
+                    <tr key={key}>
+                      {editing === key ? (
+                        <td colSpan={5}>
+                          <ExpenseForm
+                            expense={expense}
+                            onSubmit={update(key)}
+                            onCancel={() => setEditing(0)}
+                            onDelete={delet(key)}
+                          />
+                        </td>
+                      ) : (
+                        [
+                          <td key="name">{expense.name}</td>,
+                          <td key="value" className="number">{`$${(
+                            expense.value || 0
+                          ).toLocaleString()}`}</td>,
+                          <td key="start">{humanDate(expense.start)}</td>,
+                          <td key="stop">{humanDate(expense.stop)}</td>,
+                          <td key="controls">
+                            <button onClick={startEditing(key)}>edit</button>
+                          </td>,
+                        ]
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+          <footer>
+            {adding ? (
+              <ExpenseForm onSubmit={add} onCancel={() => setAdding(false)} />
+            ) : (
+              <button onClick={startAdding}>add expense</button>
+            )}
+          </footer>
+        </div>
+
+        {showHelp && (
+          <aside className="help">
+            <p>
+              Add any expenses you are expecting as a per-year value. You can
+              set dates on when an expense starts and stops. I'd suggest looking
+              at past spending to determine future behavior.
+            </p>
+          </aside>
         )}
-      </footer>
+      </div>
     </section>
   );
 };

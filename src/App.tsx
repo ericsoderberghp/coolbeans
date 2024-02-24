@@ -15,6 +15,7 @@ const scheme = {
 
 function App() {
   const [data, setData] = useState(initialData);
+  const [showHelp, setShowHelp] = useState(true);
 
   // set color mode based on browser color scheme
   useEffect(() => {
@@ -37,7 +38,7 @@ function App() {
 
   // load saved data initially
   useEffect(() => {
-    const buffer = localStorage.getItem("retirementData");
+    let buffer = localStorage.getItem("retirementData");
     if (buffer) {
       const data = JSON.parse(buffer);
       // upgrades
@@ -47,6 +48,19 @@ function App() {
       // })
       setData(data);
     }
+
+    buffer = localStorage.getItem("showHelp");
+    if (buffer) {
+      setShowHelp(JSON.parse(buffer));
+    }
+  }, []);
+
+  const toggleHelp = useCallback(() => {
+    setShowHelp((priorShowHelp: boolean) => {
+      const nextShowHelp = !priorShowHelp;
+      localStorage.setItem("showHelp", JSON.stringify(nextShowHelp));
+      return nextShowHelp;
+    });
   }, []);
 
   const updateData = useCallback(
@@ -60,8 +74,8 @@ function App() {
   );
 
   const appContextValue = useMemo(
-    () => ({ data, updateData }),
-    [data, updateData]
+    () => ({ data, showHelp, updateData }),
+    [data, showHelp, updateData]
   );
 
   const onExport = () => {
@@ -105,9 +119,12 @@ function App() {
       <main>
         <header>
           <h1>Cool Beans</h1>
-          <button onClick={onExport}>export</button>
-          <button onClick={onImportClick}>import</button>
-          <button onClick={onReset}>reset</button>
+          <div className="controls">
+            <button onClick={onExport}>export</button>
+            <button onClick={onImportClick}>import</button>
+            <button onClick={onReset}>reset</button>
+            <button onClick={toggleHelp}>help</button>
+          </div>
         </header>
 
         <Expenses />

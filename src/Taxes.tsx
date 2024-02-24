@@ -121,7 +121,7 @@ export const Tax = (props: TaxProps) => {
 };
 
 export const Taxes = () => {
-  const { data, updateData } = useContext(AppContext);
+  const { data, updateData, showHelp } = useContext(AppContext);
   const [show, setShow] = useState(false);
   const [adding, setAdding] = useState(false);
 
@@ -138,24 +138,39 @@ export const Taxes = () => {
 
   return (
     <section>
-      <header>
-        <h2>Taxes</h2>
-        <button onClick={() => setShow(!show)}>{show ? "hide" : "show"}</button>
-      </header>
-      {show && [
-        <ul key="list">
-          {data.taxes.map((tax) => (
-            <Tax tax={tax} />
-          ))}
-        </ul>,
-        <footer key="footer">
-          {adding ? (
-            <TaxForm onSubmit={add} onCancel={() => setAdding(false)} />
-          ) : (
-            <button onClick={() => setAdding(true)}>add tax</button>
-          )}
-        </footer>,
-      ]}
+      <div className="contentContainer">
+        <div className="content">
+          <header>
+            <h2>Taxes</h2>
+            <button onClick={() => setShow(!show)}>
+              {show ? "hide" : "show"}
+            </button>
+          </header>
+          {show && [
+            <ul key="list">
+              {data.taxes.map((tax) => (
+                <Tax tax={tax} />
+              ))}
+            </ul>,
+            <footer key="footer">
+              {adding ? (
+                <TaxForm onSubmit={add} onCancel={() => setAdding(false)} />
+              ) : (
+                <button onClick={() => setAdding(true)}>add tax</button>
+              )}
+            </footer>,
+          ]}
+        </div>
+
+        {showHelp && (
+          <aside className="help">
+            <p>
+              Taxes are pre-entered for the United States federal income and
+              capital gains taxes as well as California state income taxes.
+            </p>
+          </aside>
+        )}
+      </div>
     </section>
   );
 };

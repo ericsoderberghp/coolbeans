@@ -183,7 +183,7 @@ export const Account = (props: AccountProps) => {
 };
 
 export const Accounts = () => {
-  const { data, updateData } = useContext(AppContext);
+  const { data, updateData, showHelp } = useContext(AppContext);
   const [adding, setAdding] = useState(false);
 
   const sortedAccounts = useMemo(
@@ -206,36 +206,53 @@ export const Accounts = () => {
 
   return (
     <section>
-      <header>
-        <h2>Accounts</h2>
-      </header>
-      {!!data.accounts.length && (
-        <table className="records">
-          <thead>
-            <tr>
-              <th>name</th>
-              <th>kind</th>
-              <th className="number">value</th>
-              <th className="number">return</th>
-              <th className="number">dividend</th>
-              <th className="number">priority</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedAccounts.map((account) => (
-              <Account key={account.id} account={account} />
-            ))}
-          </tbody>
-        </table>
-      )}
-      <footer>
-        {adding ? (
-          <AccountForm onSubmit={add} onCancel={() => setAdding(false)} />
-        ) : (
-          <button onClick={() => setAdding(true)}>add account</button>
+      <div className="contentContainer">
+        <div className="content">
+          <header>
+            <h2>Accounts</h2>
+          </header>
+          {!!data.accounts.length && (
+            <table className="records">
+              <thead>
+                <tr>
+                  <th>name</th>
+                  <th>kind</th>
+                  <th className="number">value</th>
+                  <th className="number">return</th>
+                  <th className="number">dividend</th>
+                  <th className="number">priority</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedAccounts.map((account) => (
+                  <Account key={account.id} account={account} />
+                ))}
+              </tbody>
+            </table>
+          )}
+          <footer>
+            {adding ? (
+              <AccountForm onSubmit={add} onCancel={() => setAdding(false)} />
+            ) : (
+              <button onClick={() => setAdding(true)}>add account</button>
+            )}
+          </footer>
+        </div>
+
+        {showHelp && (
+          <aside className="help">
+            <p>
+              Add any accounts you are using for assets. You can provide a
+              current value and expected overall return. The priority indicates
+              which accounts to withdraw from when income doesn't cover
+              expenses. You can also enter individual investments within
+              accounts for finer grained tracking of shares, expected dividends,
+              and expected returns.
+            </p>
+          </aside>
         )}
-      </footer>
+      </div>
     </section>
   );
 };
