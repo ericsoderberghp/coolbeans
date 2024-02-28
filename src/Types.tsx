@@ -47,6 +47,7 @@ export type ExpenseType = {
   id: number;
   name: string;
   value: number; // yearly value
+  frequency: number; // every X years, defaults to 1
   start?: string;
   stop?: string;
 };
@@ -67,11 +68,18 @@ export type RateType = {
   // end?: string;
 };
 
+export type RMDType = {
+  id: number;
+  age: number;
+  distribution: number;
+};
+
 export type DataType = {
   name?: string;
   general: GeneralType;
   accounts: AccountType[];
   incomes: IncomeType[];
   taxes: TaxType[];
+  rmds: RMDType[];
   expenses: ExpenseType[];
 };

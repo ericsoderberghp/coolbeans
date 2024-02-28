@@ -1,4 +1,5 @@
 TODO:
+- 'hide $' mode, translate all displayed values into percentages of assets?
 - test keyboard interaction
 - invest extra income
 - debt, mortgages, etc.

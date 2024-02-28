@@ -14,11 +14,13 @@ const formEventToExpense = (
     id: 0,
     name: formData.get("name") as string,
     value: formDataNumericValue(formData, "value"),
+    frequency: formDataNumericValue(formData, "frequency"),
     start: formData.get("start") as string,
     stop: formData.get("stop") as string,
   };
   if (!result.start) delete result.start;
   if (!result.stop) delete result.stop;
+  if (!result.frequency) result.frequency = 1;
   return result;
 };
 
@@ -31,7 +33,7 @@ type ExpenseFormProps = {
 
 const ExpenseForm = (props: ExpenseFormProps) => {
   const {
-    expense = { id: 0, name: "" } as ExpenseType,
+    expense = { id: 0, name: "", frequency: 1 } as ExpenseType,
     onCancel,
     onDelete,
     onSubmit,
@@ -43,8 +45,16 @@ const ExpenseForm = (props: ExpenseFormProps) => {
         <input name="name" type="text" defaultValue={expense.name} />
       </label>
       <label>
-        $ per year
+        amount
         <input name="value" type="number" defaultValue={expense.value} />
+      </label>
+      <label>
+        every X years
+        <input
+          name="frequency"
+          type="number"
+          defaultValue={expense.frequency}
+        />
       </label>
       <label>
         start
@@ -124,9 +134,11 @@ export const Expenses = () => {
               <thead>
                 <tr>
                   <th>name</th>
-                  <th>per year</th>
+                  <th>amount</th>
+                  <th>every X years</th>
                   <th>start</th>
                   <th>stop</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -135,7 +147,7 @@ export const Expenses = () => {
                   return (
                     <tr key={key}>
                       {editing === key ? (
-                        <td colSpan={5}>
+                        <td colSpan={6}>
                           <ExpenseForm
                             expense={expense}
                             onSubmit={update(key)}
@@ -149,6 +161,9 @@ export const Expenses = () => {
                           <td key="value" className="number">{`$${(
                             expense.value || 0
                           ).toLocaleString()}`}</td>,
+                          <td key="frequency" className="number">
+                            {expense.frequency}
+                          </td>,
                           <td key="start">{humanDate(expense.start)}</td>,
                           <td key="stop">{humanDate(expense.stop)}</td>,
                           <td key="controls">

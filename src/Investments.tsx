@@ -212,7 +212,7 @@ export const Investments = (props: InvestmentsProps) => {
   const sortedInvestments = useMemo(
     () =>
       account.investments.sort(
-        (i1, i2) => calculatedValue(i2) - calculatedValue(i1)
+        (i1, i2) => (i1.priority || 0) - (i2.priority || 0)
       ),
     [account]
   );

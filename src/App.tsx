@@ -5,6 +5,7 @@ import { DataType } from "./Types";
 import { Accounts } from "./Accounts";
 import { Incomes } from "./Incomes";
 import { Taxes } from "./Taxes";
+import { RMDs } from "./RMDs";
 import { Expenses } from "./Expenses";
 import { Projections } from "./Projections";
 
@@ -46,6 +47,12 @@ function App() {
       // data.accounts.forEach((account: any) => {
       //   if (!account.kind) account.kind = account.qualified ? "IRA" : "brokerage";
       // })
+      // add RMDs
+      // if (!data.rmds) data.rmds = initialData.rmds;
+      // set expense frequency to 1
+      // data.expenses.forEach((expense: any) => {
+      //   if (!expense.frequency) expense.frequency = 1;
+      // });
       setData(data);
     }
 
@@ -131,6 +138,7 @@ function App() {
         <Incomes />
         <Accounts />
         <Taxes />
+        <RMDs />
         <Projections />
       </main>
     </AppContext.Provider>
