@@ -18,6 +18,7 @@ const formEventToAccount = (
     return: formDataNumericValue(formData, "return"),
     dividend: formDataNumericValue(formData, "dividend"),
     priority: formDataNumericValue(formData, "priority"),
+    deposit: !!formData.get("deposit"),
     investments: [],
   };
   if (!result.value) delete result.value;
@@ -85,6 +86,10 @@ const AccountForm = (props: AccountFormProps) => {
       <label>
         priority
         <input name="priority" type="number" defaultValue={account.priority} />
+      </label>
+      <label>
+        deposit
+        <input name="deposit" type="checkbox" defaultChecked={account.deposit} />
       </label>
       <footer>
         <span className="kind">Account</span>

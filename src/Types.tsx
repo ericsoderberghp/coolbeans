@@ -21,6 +21,7 @@ export type AccountType = {
   return?: number;
   dividend?: number;
   priority?: number;
+  deposit?: boolean; // whether to deposit surplus income here
   investments: InvestmentType[];
 };
 
@@ -33,6 +34,7 @@ export type InvestmentType = {
   dividend?: number; // yearly percentage
   return?: number; // yearly percentage
   priority?: number;
+  deposit?: boolean; // whether to deposit surplus income here
 };
 
 export type IncomeType = {

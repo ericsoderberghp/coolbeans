@@ -21,6 +21,7 @@ const formEventToInvestment = (
     dividend: formDataNumericValue(formData, "dividend"),
     return: formDataNumericValue(formData, "return"),
     priority: formDataNumericValue(formData, "priority"),
+    deposit: !!formData.get("deposit"),
   };
   if (!result.shares) delete result.shares;
   if (!result.basis) delete result.basis;
@@ -91,6 +92,14 @@ const InvestmentForm = (props: InvestmentFormProps) => {
           name="priority"
           type="number"
           defaultValue={investment.priority}
+        />
+      </label>
+      <label>
+        deposit
+        <input
+          name="deposit"
+          type="checkbox"
+          defaultChecked={investment.deposit}
         />
       </label>
       <label>

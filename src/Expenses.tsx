@@ -135,7 +135,7 @@ export const Expenses = () => {
                 <tr>
                   <th>name</th>
                   <th>amount</th>
-                  <th>every X years</th>
+                  <th>yearly frequency</th>
                   <th>start</th>
                   <th>stop</th>
                   <th></th>

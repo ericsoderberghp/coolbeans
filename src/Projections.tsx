@@ -500,7 +500,16 @@ export const Projections = () => {
           }
         }
       } else {
-        // TODO: handle more income than taxes + expenses by investing
+        // deposit surplus income
+        const surplus = Math.abs(shortfall);
+        // stick it in a cash investment
+        const acc = current.accounts.find(a => a.account.deposit);
+        if (acc) {
+          const inv = acc.investments.find(i => i.investment.deposit);
+          if (inv) {
+            inv.value += surplus;
+          }
+        }
       }
 
       result.push(current);
