@@ -76,6 +76,11 @@ const ExpenseForm = (props: ExpenseFormProps) => {
   );
 };
 
+const humanFrequency = (frequency: number) : string | undefined => {
+  if (frequency === 1) return 'yearly';
+  if (frequency > 1) return `every ${frequency} years`;
+};
+
 export const Expenses = () => {
   const { data, updateData, showHelp } = useContext(AppContext);
   const [adding, setAdding] = useState(false);
@@ -134,8 +139,8 @@ export const Expenses = () => {
               <thead>
                 <tr>
                   <th>name</th>
-                  <th>amount</th>
-                  <th>yearly frequency</th>
+                  <th className="number">amount</th>
+                  <th>frequency</th>
                   <th>start</th>
                   <th>stop</th>
                   <th></th>
@@ -161,8 +166,8 @@ export const Expenses = () => {
                           <td key="value" className="number">{`$${(
                             expense.value || 0
                           ).toLocaleString()}`}</td>,
-                          <td key="frequency" className="number">
-                            {expense.frequency}
+                          <td key="frequency">
+                            {humanFrequency(expense.frequency)}
                           </td>,
                           <td key="start">{humanDate(expense.start)}</td>,
                           <td key="stop">{humanDate(expense.stop)}</td>,

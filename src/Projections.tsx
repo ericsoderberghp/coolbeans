@@ -44,6 +44,7 @@ type ProjectionAccountType = {
 
 type ProjectionTransactionType = {
   name: string;
+  kind: "bought" | "sold";
   shares?: number;
   value: number;
 };
@@ -194,10 +195,7 @@ const initialProjection = (data: DataType, year: number) => {
     })),
     expenses: data.expenses.map((expense) => ({
       expense,
-      value:
-        (within(year, expense.frequency, expense.start, expense.stop) &&
-          expense.value) ||
-        0,
+      value: expense.value,
     })),
     assets: 0,
     dividends: 0,
@@ -309,16 +307,9 @@ const adjustExpensesForInflation = (
 ) =>
   prior.expenses.map((e) => {
     const expense = e.expense;
-    let value = e.value;
-    if (within(year, expense.frequency, expense.start, expense.stop)) {
-      // if we've started using an expense already, increment it by inflation
-      if (value) value = incrementByPercentage(value, data.general.inflation);
-      // we haven't used it yet, start using it
-      else value = expense.value || 0;
-    } else {
-      // if this expense is not in range of the current year, zero it
-      value = 0;
-    }
+    // we don't check within() here because we want the expense to compound
+    // with inflation
+    const value = incrementByPercentage(e.value, data.general.inflation);
     return { expense, value };
   });
 
@@ -353,6 +344,7 @@ const sellAssets = (
 
         projection.transactions.push({
           name: inv.investment.name,
+          kind: "sold",
           shares: sharesSold,
           value: sale,
         });
@@ -379,6 +371,7 @@ const sellAssets = (
 
       projection.transactions.push({
         name: acc.account.name,
+        kind: "sold",
         value: sale,
       });
 
@@ -469,7 +462,12 @@ export const Projections = () => {
       current.income =
         current.incomes.map((i) => i.value).reduce(total, 0) +
         current.dividends;
-      current.expense = current.expenses.map((e) => e.value).reduce(total, 0);
+      current.expense = current.expenses
+        .filter((e) =>
+          within(year, e.expense.frequency, e.expense.start, e.expense.stop)
+        )
+        .map((e) => e.value)
+        .reduce(total, 0);
 
       // tracks selling assets to pay for expenses and taxes,
       // may have already sold some due to required minimum distributions
@@ -481,9 +479,10 @@ export const Projections = () => {
       // if we sell any stocks, any capital gains will increase tax
       current.tax = calculateTax(current.income, current.gains, data.taxes);
 
-      let shortfall =
-        current.tax + current.expense - (current.income + current.sales);
-      if (shortfall > 0) {
+      const delta =
+        current.income + current.sales - (current.tax + current.expense);
+      if (delta < 0) {
+        let shortfall = Math.abs(delta);
         // pull from assets, starting from lowest priority
         const orderedAccounts = current.accounts.slice(0);
 
@@ -499,15 +498,22 @@ export const Projections = () => {
             );
           }
         }
-      } else {
+      } else if (delta > 0) {
         // deposit surplus income
-        const surplus = Math.abs(shortfall);
+        const surplus = delta;
         // stick it in a cash investment
-        const acc = current.accounts.find(a => a.account.deposit);
+        const acc = current.accounts.find((a) => a.account.deposit);
         if (acc) {
-          const inv = acc.investments.find(i => i.investment.deposit);
+          const inv = acc.investments.find((i) => i.investment.deposit);
           if (inv) {
+            if (inv.investment.price === 1) inv.shares += surplus;
             inv.value += surplus;
+            acc.value += surplus;
+            current.transactions.push({
+              name: inv.investment.name,
+              kind: "bought",
+              value: surplus,
+            });
           }
         }
       }
@@ -595,9 +601,14 @@ export const Projections = () => {
                 <td className="number">{humanDollars(projection.expense)}</td>
                 {expanded &&
                   data.expenses.length > 1 &&
-                  projection.expenses.map(({ expense: { id }, value }) => (
-                    <td key={id} className="number">
-                      {humanDollars(value)}
+                  projection.expenses.map(({ expense, value }) => (
+                    <td key={expense.id} className="number">
+                      {within(
+                        projection.year,
+                        expense.frequency,
+                        expense.start,
+                        expense.stop
+                      ) && humanDollars(value)}
                     </td>
                   ))}
                 <td className="number">{humanDollars(projection.tax)}</td>
@@ -634,7 +645,7 @@ export const Projections = () => {
                       <tbody>
                         {projection.transactions.map((t) => (
                           <tr key={t.name} className="transactions">
-                            <td>sold</td>
+                            <td>{t.kind}</td>
                             <td>{t.name}</td>
                             <td className="number">{t.shares}</td>
                             <td className="number">{humanDollars(t.value)}</td>
