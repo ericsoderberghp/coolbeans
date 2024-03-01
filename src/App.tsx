@@ -17,6 +17,7 @@ const scheme = {
 function App() {
   const [data, setData] = useState(initialData);
   const [showHelp, setShowHelp] = useState(true);
+  const [hideMoney, setHideMoney] = useState(false);
 
   // set color mode based on browser color scheme
   useEffect(() => {
@@ -60,6 +61,11 @@ function App() {
     if (buffer) {
       setShowHelp(JSON.parse(buffer));
     }
+
+    buffer = localStorage.getItem("hideMoney");
+    if (buffer) {
+      setHideMoney(JSON.parse(buffer));
+    }
   }, []);
 
   const toggleHelp = useCallback(() => {
@@ -67,6 +73,14 @@ function App() {
       const nextShowHelp = !priorShowHelp;
       localStorage.setItem("showHelp", JSON.stringify(nextShowHelp));
       return nextShowHelp;
+    });
+  }, []);
+
+  const toggleHideMoney = useCallback(() => {
+    setHideMoney((priorHideMoney: boolean) => {
+      const nextHideMoney = !priorHideMoney;
+      localStorage.setItem("hideMoney", JSON.stringify(nextHideMoney));
+      return nextHideMoney;
     });
   }, []);
 
@@ -81,8 +95,8 @@ function App() {
   );
 
   const appContextValue = useMemo(
-    () => ({ data, showHelp, updateData }),
-    [data, showHelp, updateData]
+    () => ({ data, showHelp, hideMoney, updateData }),
+    [data, showHelp, hideMoney, updateData]
   );
 
   const onExport = () => {
@@ -131,8 +145,20 @@ function App() {
             <button onClick={onImportClick}>import</button>
             <button onClick={onReset}>reset</button>
             <button onClick={toggleHelp}>help</button>
+            <button onClick={toggleHideMoney}>
+              {hideMoney ? "show" : "hide"} $
+            </button>
           </div>
         </header>
+
+        {showHelp && (
+          <section>
+            <p className="help">
+              A slightly more sophisticated financial planning tool than most
+              online retirement calculators.
+            </p>
+          </section>
+        )}
 
         <Expenses />
         <Incomes />

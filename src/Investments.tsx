@@ -1,6 +1,7 @@
 import React, { useContext, useMemo, useState } from "react";
 import { AppContext } from "./AppContext";
 import { AccountType, InvestmentType, DataType } from "./Types";
+import { humanMoney } from "./utils";
 
 const formDataNumericValue = (formData: FormData, name: string) =>
   parseFloat((formData.get(name) as string) ?? "");
@@ -140,7 +141,7 @@ export const Investment = (props: InvestmentProps) => {
   const { account, investment } = props;
   const id = investment.id;
   const accountId = account.id;
-  const { updateData } = useContext(AppContext);
+  const { updateData, hideMoney } = useContext(AppContext);
   const [editing, setEditing] = useState(false);
 
   const update = (event: React.FormEvent<HTMLFormElement>) => {
@@ -181,10 +182,9 @@ export const Investment = (props: InvestmentProps) => {
       ) : (
         [
           <td key="symbol">{investment.name}</td>,
-          <td
-            key="value"
-            className="number"
-          >{`$${value.toLocaleString()}`}</td>,
+          <td key="value" className="number">
+            {humanMoney(value, hideMoney)}
+          </td>,
           <td key="return" className="number">
             {investment.return || 0}%
           </td>,
@@ -192,9 +192,10 @@ export const Investment = (props: InvestmentProps) => {
             {investment.dividend || 0}%
           </td>,
           <td key="gains" className="number">
-            {investment.basis
-              ? `$${(value - investment.basis).toLocaleString()}`
-              : undefined}
+            {humanMoney(
+              investment.basis ? value - investment.basis : undefined,
+              hideMoney
+            )}
           </td>,
           <td key="priority" className="number">
             {investment.priority}

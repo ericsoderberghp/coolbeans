@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "./AppContext";
 import { TaxType, RateType, DataType } from "./Types";
-import { humanDollars } from "./utils";
+import { humanMoney } from "./utils";
 
 const formDataNumericValue = (formData: FormData, name: string) =>
   parseFloat((formData.get(name) as string) ?? "");
@@ -142,10 +142,10 @@ export const Rates = (props: RatesProps) => {
                       {rate.rate || 0}%
                     </td>,
                     <td key="min" className="number">
-                      {humanDollars(rate.min)}
+                      {humanMoney(rate.min)}
                     </td>,
                     <td key="max" className="number">
-                      {humanDollars(rate.max)}
+                      {humanMoney(rate.max)}
                     </td>,
                     <td key="controls">
                       <button onClick={startEditing(key)}>edit</button>

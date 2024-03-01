@@ -5,6 +5,7 @@ export type AppContextType = {
   data: DataType;
   updateData: (func: (d: DataType) => void) => void;
   showHelp: boolean;
+  hideMoney: boolean;
 };
 
 const initialTaxes: TaxType[] = [
@@ -97,4 +98,5 @@ export const AppContext = createContext<AppContextType>({
   data: initialData,
   updateData: defaultUpdateData,
   showHelp: true,
+  hideMoney: false,
 });

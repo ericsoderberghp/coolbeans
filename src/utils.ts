@@ -10,5 +10,10 @@ export const humanDate = (date?: string) => {
   return date;
 };
 
-export const humanDollars = (value?: number) =>
-  value ? `$${Math.round(value).toLocaleString()}` : "";
+export const humanMoney = (value?: number, hideValues?: boolean) => {
+  if (value) {
+    if (hideValues) return '*****';
+    return `$${Math.round(value).toLocaleString()}`
+  }
+  return '';
+};

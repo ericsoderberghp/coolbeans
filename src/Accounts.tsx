@@ -2,6 +2,7 @@ import React, { useContext, useMemo, useState } from "react";
 import { AppContext } from "./AppContext";
 import { AccountType, AccountKindType, DataType } from "./Types";
 import { Investments } from "./Investments";
+import { humanMoney } from "./utils";
 
 const formDataNumericValue = (formData: FormData, name: string) =>
   parseFloat((formData.get(name) as string) ?? "");
@@ -89,7 +90,11 @@ const AccountForm = (props: AccountFormProps) => {
       </label>
       <label>
         deposit
-        <input name="deposit" type="checkbox" defaultChecked={account.deposit} />
+        <input
+          name="deposit"
+          type="checkbox"
+          defaultChecked={account.deposit}
+        />
       </label>
       <footer>
         <span className="kind">Account</span>
@@ -110,7 +115,7 @@ type AccountProps = {
 export const Account = (props: AccountProps) => {
   const { account } = props;
   const id = account.id;
-  const { updateData } = useContext(AppContext);
+  const { updateData, hideMoney } = useContext(AppContext);
   const [editing, setEditing] = useState(false);
   const [showInvestments, setShowInvestments] = useState(
     !!account.investments.length
@@ -156,9 +161,9 @@ export const Account = (props: AccountProps) => {
         [
           <td key="name">{account.name}</td>,
           <td key="kind">{account.kind}</td>,
-          <td key="value" className="number">{`$${(
-            (account.value || 0) + investmentsValue
-          ).toLocaleString()}`}</td>,
+          <td key="value" className="number">
+            {humanMoney((account.value || 0) + investmentsValue, hideMoney)}
+          </td>,
           <td key="return" className="number">
             {account.return && `${account.return}%`}
           </td>,

@@ -9,7 +9,7 @@ import {
   TaxType,
 } from "./Types";
 import { General } from "./General";
-import { humanDollars } from "./utils";
+import { humanMoney } from "./utils";
 
 type ProjectionAccountType = {
   account: AccountType;
@@ -414,8 +414,35 @@ const takeRequiredDistributions = (
   }
 };
 
+type TrendProps = {
+  current?: number;
+  prior?: number;
+  prePrior?: number;
+};
+
+const Trend = (props: TrendProps) => {
+  const { current, prior, prePrior } = props;
+  if (current && prior && prePrior) {
+    if (current > prior && prior < prePrior)
+      // switch to increasing
+      return (
+        <svg className="trend up" viewBox="0 0 16 16">
+          <path d="M8,14 L8,1 L1,8 M14,8 L8,1" />
+        </svg>
+      );
+    else if (current < prior && prior > prePrior)
+      // switch to decreasing
+      return (
+        <svg className="trend down" viewBox="0 0 16 16">
+          <path d="M8,1 L8,14 L14,8 M1,8 L8,14" />
+        </svg>
+      );
+  }
+  return null;
+};
+
 export const Projections = () => {
-  const { data, showHelp } = useContext(AppContext);
+  const { data, showHelp, hideMoney } = useContext(AppContext);
   const [expanded, setExpanded] = useState(true);
 
   // const projections: ProjectionType[] = [];
@@ -592,13 +619,20 @@ export const Projections = () => {
             </tr>
           </thead>
           <tbody>
-            {projections.map((projection) => [
+            {projections.map((projection, index) => [
               <tr key={projection.year}>
                 <th scope="row" className="number">
                   {projection.year}
                 </th>
                 <td className="number">{projection.age}</td>
-                <td className="number">{humanDollars(projection.expense)}</td>
+                <td className="number">
+                  <Trend
+                    current={projection.expense}
+                    prior={projections[index - 1]?.expense}
+                    prePrior={projections[index - 2]?.expense}
+                  />
+                  {humanMoney(projection.expense, hideMoney)}
+                </td>
                 {expanded &&
                   data.expenses.length > 1 &&
                   projection.expenses.map(({ expense, value }) => (
@@ -608,30 +642,47 @@ export const Projections = () => {
                         expense.frequency,
                         expense.start,
                         expense.stop
-                      ) && humanDollars(value)}
+                      ) && humanMoney(value, hideMoney)}
                     </td>
                   ))}
-                <td className="number">{humanDollars(projection.tax)}</td>
-                <td className="number">{humanDollars(projection.income)}</td>
+                <td className="number">
+                  {humanMoney(projection.tax, hideMoney)}
+                </td>
+                <td className="number">
+                  {humanMoney(projection.income, hideMoney)}
+                </td>
                 {expanded &&
                   projection.incomes.map(({ income: { id }, value }) => (
                     <td key={id} className="number">
-                      {humanDollars(value)}
+                      {humanMoney(value, hideMoney)}
                     </td>
                   ))}
-                <td className="number">{humanDollars(projection.dividends)}</td>
-                <td className="number">{humanDollars(projection.sales)}</td>
-                <td className="number">{humanDollars(projection.gains)}</td>
-                <td className="number">{humanDollars(projection.assets)}</td>
+                <td className="number">
+                  {humanMoney(projection.dividends, hideMoney)}
+                </td>
+                <td className="number">
+                  {humanMoney(projection.sales, hideMoney)}
+                </td>
+                <td className="number">
+                  {humanMoney(projection.gains, hideMoney)}
+                </td>
+                <td className="number">
+                  <Trend
+                    current={projection.assets}
+                    prior={projections[index - 1]?.assets}
+                    prePrior={projections[index - 2]?.assets}
+                  />
+                  {humanMoney(projection.assets, hideMoney)}
+                </td>
                 {expanded &&
                   projection.accounts.map(
                     ({ account: { id }, value, investments }) => [
                       <td key={id} className="number">
-                        {humanDollars(value)}
+                        {humanMoney(value, hideMoney)}
                       </td>,
                       investments.map(({ investment: { id }, value }) => (
                         <td key={id} className="number">
-                          {humanDollars(value)}
+                          {humanMoney(value, hideMoney)}
                         </td>
                       )),
                     ]
@@ -647,8 +698,12 @@ export const Projections = () => {
                           <tr key={t.name} className="transactions">
                             <td>{t.kind}</td>
                             <td>{t.name}</td>
-                            <td className="number">{t.shares}</td>
-                            <td className="number">{humanDollars(t.value)}</td>
+                            <td className="number">
+                              {hideMoney ? "***" : t.shares}
+                            </td>
+                            <td className="number">
+                              {humanMoney(t.value, hideMoney)}
+                            </td>
                           </tr>
                         ))}
                       </tbody>

@@ -38,6 +38,9 @@ section {
 
 .contentContainer > aside {
   flex: 0 1 auto;
+}
+
+.help {
   color: hsl(0 0% var(--foreground-lightness) / 70%);
 }
 
@@ -204,8 +207,8 @@ th {
   vertical-align: bottom;
 }
 
-table.years tr:not(.transactions):hover > td,
-table.years tr:not(.transactions):hover > th {
+table.years tbody tr:not(.transactions):hover > td,
+table.years tbody tr:not(.transactions):hover > th {
   background-color: hsl(0 0% var(--foreground-lightness) / 5%);
 }
 
@@ -281,4 +284,21 @@ table.years thead th {
 table.years thead th:first-child {
   left: 0;
   z-index: 2;
+}
+
+svg.trend {
+  display: inline-block;
+  width: 0.5em;
+  height: 0.5em;
+  margin-right: 0.25em;
+  stroke-width: 3px;
+  fill: none;
+}
+
+svg.trend.up {
+  stroke: hsl(130 80% 30%);
+}
+
+svg.trend.down {
+  stroke: hsl(0 80% 40%);
 }

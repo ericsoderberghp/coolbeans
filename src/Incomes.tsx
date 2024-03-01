@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "./AppContext";
 import { IncomeType, DataType } from "./Types";
-import { humanDate } from "./utils";
+import { humanDate, humanMoney } from "./utils";
 
 const formDataNumericValue = (formData: FormData, name: string) =>
   parseFloat((formData.get(name) as string) ?? "");
@@ -65,7 +65,7 @@ const IncomeForm = (props: IncomeFormProps) => {
 };
 
 export const Incomes = () => {
-  const { data, updateData, showHelp } = useContext(AppContext);
+  const { data, updateData, showHelp, hideMoney } = useContext(AppContext);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(0);
 
@@ -144,9 +144,9 @@ export const Incomes = () => {
                       ) : (
                         [
                           <td key="name">{income.name}</td>,
-                          <td key="value" className="number">{`$${(
-                            income.value || 0
-                          ).toLocaleString()}`}</td>,
+                          <td key="value" className="number">
+                            {humanMoney(income.value || 0, hideMoney)}
+                          </td>,
                           <td key="start">{humanDate(income.start)}</td>,
                           <td key="stop">{humanDate(income.stop)}</td>,
                           <td key="controls">

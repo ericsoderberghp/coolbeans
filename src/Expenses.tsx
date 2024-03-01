@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "./AppContext";
 import { ExpenseType, DataType } from "./Types";
-import { humanDate } from "./utils";
+import { humanDate, humanMoney } from "./utils";
 
 const formDataNumericValue = (formData: FormData, name: string) =>
   parseFloat((formData.get(name) as string) ?? "");
@@ -76,13 +76,13 @@ const ExpenseForm = (props: ExpenseFormProps) => {
   );
 };
 
-const humanFrequency = (frequency: number) : string | undefined => {
-  if (frequency === 1) return 'yearly';
+const humanFrequency = (frequency: number): string | undefined => {
+  if (frequency === 1) return "yearly";
   if (frequency > 1) return `every ${frequency} years`;
 };
 
 export const Expenses = () => {
-  const { data, updateData, showHelp } = useContext(AppContext);
+  const { data, updateData, showHelp, hideMoney } = useContext(AppContext);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(0);
 
@@ -163,9 +163,9 @@ export const Expenses = () => {
                       ) : (
                         [
                           <td key="name">{expense.name}</td>,
-                          <td key="value" className="number">{`$${(
-                            expense.value || 0
-                          ).toLocaleString()}`}</td>,
+                          <td key="value" className="number">
+                            {humanMoney(expense.value || 0, hideMoney)}
+                          </td>,
                           <td key="frequency">
                             {humanFrequency(expense.frequency)}
                           </td>,
