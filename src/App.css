@@ -167,7 +167,7 @@ input[type="checkbox"]::after {
   position: absolute;
   right: 18px;
   top: 6px;
-  display: box;
+  display: flex;
   width: 0.33em;
   height: 0.66em;
   transform: rotate(33deg);
