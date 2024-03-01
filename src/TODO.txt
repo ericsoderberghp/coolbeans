@@ -1,6 +1,4 @@
 TODO:
-- show percentage of assets in accounts and investments
-
 - test keyboard interaction
 - debt, mortgages, etc.
 

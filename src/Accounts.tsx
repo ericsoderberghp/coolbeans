@@ -110,10 +110,11 @@ const AccountForm = (props: AccountFormProps) => {
 
 type AccountProps = {
   account: AccountType;
+  assets: number;
 };
 
 export const Account = (props: AccountProps) => {
-  const { account } = props;
+  const { account, assets } = props;
   const id = account.id;
   const { updateData, hideMoney } = useContext(AppContext);
   const [editing, setEditing] = useState(false);
@@ -125,6 +126,8 @@ export const Account = (props: AccountProps) => {
     (tot, inv) => ((inv.shares || 0) * (inv.price || 0) || 0) + tot,
     0
   );
+
+  const value = (account.value || 0) + investmentsValue;
 
   const update = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -149,7 +152,7 @@ export const Account = (props: AccountProps) => {
   return [
     <tr key={id}>
       {editing ? (
-        <td colSpan={7}>
+        <td colSpan={8}>
           <AccountForm
             account={account}
             onSubmit={update}
@@ -162,7 +165,10 @@ export const Account = (props: AccountProps) => {
           <td key="name">{account.name}</td>,
           <td key="kind">{account.kind}</td>,
           <td key="value" className="number">
-            {humanMoney((account.value || 0) + investmentsValue, hideMoney)}
+            {humanMoney(value, hideMoney)}
+          </td>,
+          <td key="percent" className="number">
+            {`${Math.round((value / assets) * 100)}%`}
           </td>,
           <td key="return" className="number">
             {account.return && `${account.return}%`}
@@ -184,8 +190,8 @@ export const Account = (props: AccountProps) => {
     </tr>,
     showInvestments ? (
       <tr key="investments">
-        <td colSpan={7}>
-          <Investments account={account} />
+        <td colSpan={8}>
+          <Investments account={account} assets={assets} />
         </td>
       </tr>
     ) : null,
@@ -193,12 +199,27 @@ export const Account = (props: AccountProps) => {
 };
 
 export const Accounts = () => {
-  const { data, updateData, showHelp } = useContext(AppContext);
+  const { data, updateData, showHelp, hideMoney } = useContext(AppContext);
   const [adding, setAdding] = useState(false);
 
   const sortedAccounts = useMemo(
     () =>
       data.accounts.sort((a1, a2) => (a1.priority || 0) - (a2.priority || 0)),
+    [data]
+  );
+
+  const assets = useMemo(
+    () =>
+      data.accounts.reduce(
+        (tot, acc) =>
+          (acc.value ||
+            acc.investments.reduce(
+              (tot2, inv) => ((inv.shares || 0) * (inv.price || 0) || 0) + tot2,
+              0
+            ) ||
+            0) + tot,
+        0
+      ),
     [data]
   );
 
@@ -220,6 +241,7 @@ export const Accounts = () => {
         <div className="content">
           <header>
             <h2>Accounts</h2>
+            <span>{humanMoney(assets || 0, hideMoney)}</span>
           </header>
           {!!data.accounts.length && (
             <table className="records">
@@ -228,6 +250,7 @@ export const Accounts = () => {
                   <th>name</th>
                   <th>kind</th>
                   <th className="number">value</th>
+                  <th className="number">% of assets</th>
                   <th className="number">return</th>
                   <th className="number">dividend</th>
                   <th className="number">priority</th>
@@ -236,7 +259,7 @@ export const Accounts = () => {
               </thead>
               <tbody>
                 {sortedAccounts.map((account) => (
-                  <Account key={account.id} account={account} />
+                  <Account key={account.id} account={account} assets={assets} />
                 ))}
               </tbody>
             </table>

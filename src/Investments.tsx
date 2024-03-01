@@ -134,11 +134,12 @@ const getAccount = (data: DataType, id: number) => {
 
 type InvestmentProps = {
   account: AccountType;
+  assets: number;
   investment: InvestmentType;
 };
 
 export const Investment = (props: InvestmentProps) => {
-  const { account, investment } = props;
+  const { account, assets, investment } = props;
   const id = investment.id;
   const accountId = account.id;
   const { updateData, hideMoney } = useContext(AppContext);
@@ -171,7 +172,7 @@ export const Investment = (props: InvestmentProps) => {
   return (
     <tr>
       {editing ? (
-        <td colSpan={7}>
+        <td colSpan={8}>
           <InvestmentForm
             investment={investment}
             onSubmit={update}
@@ -184,6 +185,9 @@ export const Investment = (props: InvestmentProps) => {
           <td key="symbol">{investment.name}</td>,
           <td key="value" className="number">
             {humanMoney(value, hideMoney)}
+          </td>,
+          <td key="percent" className="number">
+            {`${Math.round((value / assets) * 1000) / 10}%`}
           </td>,
           <td key="return" className="number">
             {investment.return || 0}%
@@ -211,10 +215,11 @@ export const Investment = (props: InvestmentProps) => {
 
 type InvestmentsProps = {
   account: AccountType;
+  assets: number;
 };
 
 export const Investments = (props: InvestmentsProps) => {
-  const { account } = props;
+  const { account, assets } = props;
   const accountId = account.id;
   const { updateData } = useContext(AppContext);
   const [adding, setAdding] = useState(false);
@@ -258,6 +263,7 @@ export const Investments = (props: InvestmentsProps) => {
             <tr>
               <th>symbol</th>
               <th className="number">value</th>
+              <th className="number">% of assets</th>
               <th className="number">return</th>
               <th className="number">dividend</th>
               <th className="number">gains</th>
@@ -270,6 +276,7 @@ export const Investments = (props: InvestmentsProps) => {
                 key={investment.id}
                 account={account}
                 investment={investment}
+                assets={assets}
               />
             ))}
           </tbody>
