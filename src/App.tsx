@@ -155,7 +155,8 @@ function App() {
           <section>
             <p className="help">
               A slightly more sophisticated financial planning tool than most
-              online retirement calculators.
+              online retirement calculators. All of your data is kept
+              exclusively in your browser.
             </p>
           </section>
         )}
