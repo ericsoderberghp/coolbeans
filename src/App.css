@@ -98,11 +98,26 @@ button:hover,
 
 label {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: var(--size);
   font-weight: bold;
-  white-space: nowrap
+  white-space: nowrap;
+}
+
+label > input, label > select {
+  justify-self: end;
+  align-self: start;
+}
+
+label > div {
+  padding-top: 6px;
+}
+
+label p.help {
+  margin-top: 0;
+  font-weight: normal;
+  white-space: normal;
 }
 
 .options {
@@ -127,7 +142,7 @@ input,
 select {
   appearance: none;
   font-family: 'courier new', courier, monospace;
-  font-size: 1em;
+  font-size: inherit;
   background-color: inherit;
   color: inherit;
   border: 1px solid hsl(0 0% var(--foreground-lightness) / 30%);
@@ -147,26 +162,29 @@ input[type=number] {
   text-align: right;
 }
 
+input[type=number]::-webkit-textfield-decoration-container {
+  gap: 0.5em;
+}
+
 input[type=checkbox] {
   appearance: none;
   margin: 0;
   position: relative;
-  box-sizing: content-box;
   margin-bottom: -1px;
   font: inherit;
-  height: calc(1em + 2px);
+  height: 32px; /* empirical */
 }
 
 input[type=checkbox]:hover {
   cursor: pointer;
-  background: #ddd;
+  background: hsl(0 0% var(--foreground-lightness) / 5%);
 }
 
 input[type="checkbox"]::after {
   content: '';
   position: absolute;
-  right: 18px;
-  top: 6px;
+  left: 50%;
+  top: 8px;
   display: flex;
   width: 0.33em;
   height: 0.66em;
@@ -174,8 +192,8 @@ input[type="checkbox"]::after {
 }
 
 input[type="checkbox"]:checked::after {
-  border-right: 4px solid black;
-  border-bottom: 4px solid black;
+  border-right: 3px solid hsl(0 0% var(--foreground-lightness));
+  border-bottom: 3px solid hsl(0 0% var(--foreground-lightness));
 }
 
 ul,
@@ -241,7 +259,7 @@ form {
   margin: var(--size) 0;
   border: 1px solid hsl(0 0% var(--foreground-lightness) / 40%);
   padding: var(--size);
-  width: 26em;
+  width: fit-content;
 }
 
 form footer {

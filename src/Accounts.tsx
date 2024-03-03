@@ -37,12 +37,14 @@ type AccountFormProps = {
 };
 
 const AccountForm = (props: AccountFormProps) => {
+  const { showHelp } = useContext(AppContext);
   const {
     account = { id: 0, name: "" } as AccountType,
     onCancel,
     onDelete,
     onSubmit,
   } = props;
+
   return (
     <form onSubmit={onSubmit}>
       <label>
@@ -50,11 +52,15 @@ const AccountForm = (props: AccountFormProps) => {
         <input name="name" type="text" defaultValue={account.name} />
       </label>
       <label>
-        value
-        <input name="value" type="number" defaultValue={account.value} />
-      </label>
-      <label>
-        kind
+        <div>
+          <span>kind</span>
+          {showHelp && (
+            <p className="help">
+              determines how any dividends are re-invested and how taxes are
+              handled at withdrawl
+            </p>
+          )}
+        </div>
         <select name="kind" defaultValue={account.kind}>
           <option>IRA</option>
           <option>401k</option>
@@ -63,6 +69,42 @@ const AccountForm = (props: AccountFormProps) => {
           <option>brokerage</option>
           <option>pension</option>
         </select>
+      </label>
+      <label>
+        <div>
+          <span>priority</span>
+          {showHelp && (
+            <p className="help">
+              assets will be sold from accounts in priority order
+            </p>
+          )}
+        </div>
+        <input name="priority" type="number" defaultValue={account.priority} />
+      </label>
+      <label>
+        <div>
+          <span>deposit</span>
+          {showHelp && (
+            <p className="help">
+              whether excess income should be deposited in this account
+            </p>
+          )}
+        </div>
+        <input
+          name="deposit"
+          type="checkbox"
+          defaultChecked={account.deposit}
+        />
+      </label>
+      {showHelp && (
+        <p className="help">
+          If you don't want to model individual investments, set the following
+          at the account level.
+        </p>
+      )}
+      <label>
+        value
+        <input name="value" type="number" defaultValue={account.value} />
       </label>
       <label>
         return %
@@ -82,18 +124,6 @@ const AccountForm = (props: AccountFormProps) => {
           type="number"
           step="0.01"
           defaultValue={account.dividend}
-        />
-      </label>
-      <label>
-        priority
-        <input name="priority" type="number" defaultValue={account.priority} />
-      </label>
-      <label>
-        deposit
-        <input
-          name="deposit"
-          type="checkbox"
-          defaultChecked={account.deposit}
         />
       </label>
       <footer>

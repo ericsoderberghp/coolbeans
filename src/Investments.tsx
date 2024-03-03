@@ -41,6 +41,7 @@ type InvestmentFormProps = {
 };
 
 const InvestmentForm = (props: InvestmentFormProps) => {
+  const { showHelp } = useContext(AppContext);
   const {
     investment = { id: 0, name: "" } as InvestmentType,
     onCancel,
@@ -51,8 +52,46 @@ const InvestmentForm = (props: InvestmentFormProps) => {
   return (
     <form onSubmit={onSubmit}>
       <label>
-        symbol
+        <div>
+          <span>symbol</span>
+          {showHelp && (
+            <p className="help">
+              can be a stock ticker symbol (CUSIP) or something like "cash"
+            </p>
+          )}
+        </div>
         <input name="name" type="text" defaultValue={investment.name} />
+      </label>
+      <label>
+        <div>
+          <span>priority</span>
+          {showHelp && (
+            <p className="help">
+              assets will be sold from investments within an account in priority
+              order
+            </p>
+          )}
+        </div>
+        <input
+          name="priority"
+          type="number"
+          defaultValue={investment.priority}
+        />
+      </label>
+      <label>
+        <div>
+          <span>deposit</span>
+          {showHelp && (
+            <p className="help">
+              whether excess income should be deposited in this investment
+            </p>
+          )}
+        </div>
+        <input
+          name="deposit"
+          type="checkbox"
+          defaultChecked={investment.deposit}
+        />
       </label>
       <label>
         shares
@@ -68,7 +107,10 @@ const InvestmentForm = (props: InvestmentFormProps) => {
         />
       </label>
       <label>
-        return %
+        <div>
+          <span>return %</span>
+          {showHelp && <p className="help">estimated annual return</p>}
+        </div>
         <input
           name="return"
           className="percent"
@@ -78,7 +120,12 @@ const InvestmentForm = (props: InvestmentFormProps) => {
         />
       </label>
       <label>
-        dividend yield %
+        <div>
+          <span>dividend yield %</span>
+          {showHelp && (
+            <p className="help">estimated annual dividend yields</p>
+          )}
+        </div>
         <input
           className="percent"
           name="dividend"
@@ -88,23 +135,12 @@ const InvestmentForm = (props: InvestmentFormProps) => {
         />
       </label>
       <label>
-        priority
-        <input
-          name="priority"
-          type="number"
-          defaultValue={investment.priority}
-        />
-      </label>
-      <label>
-        deposit
-        <input
-          name="deposit"
-          type="checkbox"
-          defaultChecked={investment.deposit}
-        />
-      </label>
-      <label>
-        price
+        <div>
+          <span>price</span>
+          {showHelp && (
+            <p className="help">the current share price</p>
+          )}
+        </div>
         <input
           name="price"
           type="number"
