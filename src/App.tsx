@@ -3,6 +3,7 @@ import "./App.css";
 import { AppContext, initialData } from "./AppContext";
 import { DataType, PricesType } from "./Types";
 import { Accounts } from "./Accounts";
+import { AssetClasses } from "./AssetClasses";
 import { Incomes } from "./Incomes";
 import { Taxes } from "./Taxes";
 import { RMDs } from "./RMDs";
@@ -227,6 +228,7 @@ function App() {
         <Expenses />
         <Incomes />
         <Accounts />
+        <AssetClasses />
         <Taxes />
         <RMDs />
         <Projections />

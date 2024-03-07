@@ -1,6 +1,6 @@
 import React, { useContext, useMemo, useState } from "react";
 import { AppContext } from "./AppContext";
-import { AccountType, InvestmentType, DataType } from "./Types";
+import { AccountType, AssetClassType, InvestmentType, DataType } from "./Types";
 import { humanMoney } from "./utils";
 
 const formDataNumericValue = (formData: FormData, name: string) =>
@@ -23,6 +23,7 @@ const formEventToInvestment = (
     return: formDataNumericValue(formData, "return"),
     priority: formDataNumericValue(formData, "priority"),
     deposit: !!formData.get("deposit"),
+    assetClass: formData.get("assetClass") as AssetClassType,
   };
   if (!result.shares) delete result.shares;
   if (!result.basis) delete result.basis;
@@ -92,6 +93,20 @@ const InvestmentForm = (props: InvestmentFormProps) => {
           type="checkbox"
           defaultChecked={investment.deposit}
         />
+      </label>
+      <label>
+        <div>
+          <span>asset class</span>
+        </div>
+        <select name="assetClass" defaultValue={investment.assetClass}>
+          <option>large cap</option>
+          <option>small cap</option>
+          <option>international</option>
+          <option>fixed income</option>
+          <option>cash equivalent</option>
+          <option>commodities</option>
+          <option>alternative</option>
+        </select>
       </label>
       <label>
         shares
@@ -221,7 +236,7 @@ export const Investment = (props: InvestmentProps) => {
             {humanMoney(price, false, true)}
           </td>,
           <td key="shares" className="number">
-            {hideMoney ? '**' : investment.shares}
+            {hideMoney ? "**" : investment.shares}
           </td>,
           <td key="value" className="number">
             {humanMoney(value, hideMoney)}

@@ -25,16 +25,26 @@ export type AccountType = {
   investments: InvestmentType[];
 };
 
+export type AssetClassType =
+  | "large cap"
+  | "small cap"
+  | "international"
+  | "fixed income"
+  | "cash equivalent"
+  | "commodities"
+  | "alternative";
+
 export type InvestmentType = {
   id: number;
   name: string;
   shares?: number;
   basis?: number;
-  price?: number;
+  price?: number; // obsolete, retrieved automatically
   dividend?: number; // yearly percentage
   return?: number; // yearly percentage
   priority?: number;
   deposit?: boolean; // whether to deposit surplus income here
+  assetClass?: AssetClassType;
 };
 
 export type IncomeType = {
@@ -86,4 +96,4 @@ export type DataType = {
   expenses: ExpenseType[];
 };
 
-export type PricesType = { [key: string]: { price: number, date: string } };
+export type PricesType = { [key: string]: { price: number; date: string } };

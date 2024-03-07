@@ -147,7 +147,11 @@ const calculateTax = (income: number, gains: number, taxes: TaxType[]) => {
 };
 
 // build the projection for the first year we are tracking
-const initialProjection = (data: DataType, year: number, prices: PricesType) => {
+const initialProjection = (
+  data: DataType,
+  year: number,
+  prices: PricesType
+) => {
   let result: ProjectionType = {
     year,
     age: data.general.age,
@@ -158,7 +162,8 @@ const initialProjection = (data: DataType, year: number, prices: PricesType) => 
           .sort((i1, i2) => (i1.priority || 0) - (i2.priority || 0))
           .map((investment) => {
             const { shares = 0 } = investment;
-            const price = prices?.[investment.name]?.price || investment.price || 0;
+            const price =
+              prices?.[investment.name]?.price || investment.price || 0;
             const value = shares * price;
             const dividends = percentageOf(value, investment.dividend);
             return {
@@ -572,11 +577,11 @@ export const Projections = () => {
             <p>
               Projections show where you stand each year. Income and expenses
               are updated based on inflation each year. Accounts and investments
-              return dividends and are updated based on their expected return.
-              IRA accounts automatically re-invest dividends. Brokerage accounts
-              return dividends as income. Selling from IRA and pension accounts
-              are handled as regular income. Selling from other accounts are
-              handled as capital gains. Taxes are applied to sales.
+              distribute dividends and are updated based on their expected
+              return. IRA accounts automatically re-invest dividends. Brokerage
+              accounts return dividends as income. Selling from IRA and pension
+              accounts are handled as regular income. Selling from other
+              accounts are handled as capital gains. Taxes are applied to sales.
             </p>
           </aside>
         )}
