@@ -111,8 +111,7 @@ function App() {
     }
   }, [pendingSymbols]);
 
-  // retrieve stock prices for symbols we don't have a price for yet
-  useEffect(() => {
+  const checkPrices = useCallback(() => {
     // merge all symbols from across all account investments
     const symbols: string[] = [
       ...new Set(
@@ -120,6 +119,7 @@ function App() {
           .map((acc) => acc.investments)
           .flat()
           .map((inv) => inv.name)
+          // skip any symbols that aren't upper case, like "cash"
           .filter((name) => name && name.toUpperCase() === name)
       ),
     ];
@@ -131,6 +131,17 @@ function App() {
 
     if (symbolsWithoutPrices.length) setPendingSymbols(symbolsWithoutPrices);
   }, [data, prices]);
+
+  // check if we need to retrieve stock prices when data or prices change
+  // or the user returns to the page
+  useEffect(() => {
+    const change = () => {
+      if (!document.hidden) checkPrices();
+    };
+    document.addEventListener("visibilitychange", change);
+    checkPrices();
+    return () => document.removeEventListener("visibilitychange", change);
+  }, [checkPrices]);
 
   const toggleHelp = useCallback(() => {
     setShowHelp((priorShowHelp: boolean) => {
