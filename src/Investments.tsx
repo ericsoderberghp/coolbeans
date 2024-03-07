@@ -6,8 +6,8 @@ import { humanMoney } from "./utils";
 const formDataNumericValue = (formData: FormData, name: string) =>
   parseFloat((formData.get(name) as string) ?? "");
 
-const calculatedValue = (investment?: InvestmentType) =>
-  (investment && (investment.shares || 0) * (investment.price || 0)) || 0;
+const calculatedValue = (investment: InvestmentType, price: number) =>
+  (investment.shares || 0) * price;
 
 const formEventToInvestment = (
   event: React.FormEvent<HTMLFormElement>
@@ -122,9 +122,7 @@ const InvestmentForm = (props: InvestmentFormProps) => {
       <label>
         <div>
           <span>dividend yield %</span>
-          {showHelp && (
-            <p className="help">estimated annual dividend yields</p>
-          )}
+          {showHelp && <p className="help">estimated annual dividend yields</p>}
         </div>
         <input
           className="percent"
@@ -137,9 +135,7 @@ const InvestmentForm = (props: InvestmentFormProps) => {
       <label>
         <div>
           <span>price</span>
-          {showHelp && (
-            <p className="help">the current share price</p>
-          )}
+          {showHelp && <p className="help">the current share price</p>}
         </div>
         <input
           name="price"
@@ -178,7 +174,7 @@ export const Investment = (props: InvestmentProps) => {
   const { account, assets, investment } = props;
   const id = investment.id;
   const accountId = account.id;
-  const { updateData, hideMoney } = useContext(AppContext);
+  const { updateData, hideMoney, prices } = useContext(AppContext);
   const [editing, setEditing] = useState(false);
 
   const update = (event: React.FormEvent<HTMLFormElement>) => {
@@ -204,11 +200,13 @@ export const Investment = (props: InvestmentProps) => {
     });
   };
 
-  const value = calculatedValue(investment);
+  const price = prices?.[investment.name]?.price || investment.price || 0;
+  const value = calculatedValue(investment, price);
+
   return (
     <tr>
       {editing ? (
-        <td colSpan={8}>
+        <td colSpan={10}>
           <InvestmentForm
             investment={investment}
             onSubmit={update}
@@ -219,6 +217,12 @@ export const Investment = (props: InvestmentProps) => {
       ) : (
         [
           <td key="symbol">{investment.name}</td>,
+          <td key="price" className="number">
+            {humanMoney(price, false, true)}
+          </td>,
+          <td key="shares" className="number">
+            {hideMoney ? '**' : investment.shares}
+          </td>,
           <td key="value" className="number">
             {humanMoney(value, hideMoney)}
           </td>,
@@ -257,7 +261,7 @@ type InvestmentsProps = {
 export const Investments = (props: InvestmentsProps) => {
   const { account, assets } = props;
   const accountId = account.id;
-  const { updateData } = useContext(AppContext);
+  const { updateData, hideMoney } = useContext(AppContext);
   const [adding, setAdding] = useState(false);
 
   const sortedInvestments = useMemo(
@@ -298,12 +302,15 @@ export const Investments = (props: InvestmentsProps) => {
           <thead>
             <tr>
               <th>symbol</th>
+              <th className="number">price</th>
+              <th className="number">shares</th>
               <th className="number">value</th>
               <th className="number">% of assets</th>
               <th className="number">return</th>
               <th className="number">dividend</th>
               <th className="number">gains</th>
               <th className="number">priority</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -319,7 +326,9 @@ export const Investments = (props: InvestmentsProps) => {
           <tfoot>
             <tr>
               <td></td>
-              <td className="total">{`$${totalValue.toLocaleString()}`}</td>
+              <td></td>
+              <td></td>
+              <td className="total">{humanMoney(totalValue, hideMoney)}</td>
             </tr>
           </tfoot>
         </table>

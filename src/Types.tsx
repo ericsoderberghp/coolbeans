@@ -85,3 +85,5 @@ export type DataType = {
   rmds: RMDType[];
   expenses: ExpenseType[];
 };
+
+export type PricesType = { [key: string]: { price: number, date: string } };

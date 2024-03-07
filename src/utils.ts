@@ -10,10 +10,11 @@ export const humanDate = (date?: string) => {
   return date;
 };
 
-export const humanMoney = (value?: number, hideValues?: boolean) => {
+export const humanMoney = (value?: number, hideValues?: boolean, raw: boolean = false) => {
   if (value) {
-    if (hideValues) return '*****';
-    return `$${Math.round(value).toLocaleString()}`
+    const trimmedValue = raw ? value : Math.round(value);
+    if (hideValues) return '*'.repeat(`${trimmedValue}`.length);
+    return `$${trimmedValue.toLocaleString()}`;
   }
   return '';
 };

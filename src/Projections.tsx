@@ -7,6 +7,7 @@ import {
   IncomeType,
   InvestmentType,
   TaxType,
+  PricesType,
 } from "./Types";
 import { General } from "./General";
 import { humanMoney } from "./utils";
@@ -146,7 +147,7 @@ const calculateTax = (income: number, gains: number, taxes: TaxType[]) => {
 };
 
 // build the projection for the first year we are tracking
-const initialProjection = (data: DataType, year: number) => {
+const initialProjection = (data: DataType, year: number, prices: PricesType) => {
   let result: ProjectionType = {
     year,
     age: data.general.age,
@@ -156,7 +157,8 @@ const initialProjection = (data: DataType, year: number) => {
         const investments = account.investments
           .sort((i1, i2) => (i1.priority || 0) - (i2.priority || 0))
           .map((investment) => {
-            const { shares = 0, price = 0 } = investment;
+            const { shares = 0 } = investment;
+            const price = prices?.[investment.name]?.price || investment.price || 0;
             const value = shares * price;
             const dividends = percentageOf(value, investment.dividend);
             return {
@@ -442,7 +444,7 @@ const Trend = (props: TrendProps) => {
 };
 
 export const Projections = () => {
-  const { data, showHelp, hideMoney } = useContext(AppContext);
+  const { data, showHelp, hideMoney, prices } = useContext(AppContext);
   const [expanded, setExpanded] = useState(true);
 
   // const projections: ProjectionType[] = [];
@@ -450,7 +452,7 @@ export const Projections = () => {
     const startYear = new Date().getFullYear();
 
     // initialize the first year based on current values
-    let prior = initialProjection(data, startYear);
+    let prior = initialProjection(data, startYear, prices);
     const result = [];
 
     // project future years
@@ -550,7 +552,7 @@ export const Projections = () => {
     }
 
     return result;
-  }, [data]);
+  }, [data, prices]);
 
   return (
     <section>

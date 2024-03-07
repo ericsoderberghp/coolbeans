@@ -1,12 +1,12 @@
 TODO:
+- implement asset classes: large cap, small cap, international, alternative
+
 - test keyboard interaction
 - debt, mortgages, etc.
 
 - multiple data sets, to allow showing different scenarios
-- implement asset classes: large cap, small cap, international, alternative
 
 - enhance social security with per-age payments and choice on when to start claiming
-- use API to get current stock prices
 - Medicare
 - charts
 - slider controls to adjust values and watch projections change in real time

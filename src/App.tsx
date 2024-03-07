@@ -1,13 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
 import { AppContext, initialData } from "./AppContext";
-import { DataType } from "./Types";
+import { DataType, PricesType } from "./Types";
 import { Accounts } from "./Accounts";
 import { Incomes } from "./Incomes";
 import { Taxes } from "./Taxes";
 import { RMDs } from "./RMDs";
 import { Expenses } from "./Expenses";
 import { Projections } from "./Projections";
+
+const API_ROOT = "https://api.twelvedata.com";
+const API_KEY = process.env.REACT_APP_TDKEY;
 
 const scheme = {
   dark: { background: "6%", foreground: "85%" },
@@ -18,6 +21,8 @@ function App() {
   const [data, setData] = useState(initialData);
   const [showHelp, setShowHelp] = useState(true);
   const [hideMoney, setHideMoney] = useState(false);
+  const [pendingSymbols, setPendingSymbols] = useState<string[]>([]);
+  const [prices, setPrices] = useState<PricesType>({});
 
   // set color mode based on browser color scheme
   useEffect(() => {
@@ -40,7 +45,8 @@ function App() {
 
   // load saved data initially
   useEffect(() => {
-    let buffer = localStorage.getItem("retirementData");
+    let buffer =
+      localStorage.getItem("data") || localStorage.getItem("retirementData");
     if (buffer) {
       const data = JSON.parse(buffer);
       // upgrades
@@ -55,18 +61,75 @@ function App() {
       //   if (!expense.frequency) expense.frequency = 1;
       // });
       setData(data);
+
+      buffer = localStorage.getItem("prices");
+      if (buffer) {
+        const storedPrices = JSON.parse(buffer);
+        // remove any prices from before today
+        const date = new Date().toISOString().split("T")[0];
+        Object.keys(storedPrices).forEach((key) => {
+          if (storedPrices[key].date !== date) delete storedPrices[key];
+        });
+        setPrices(storedPrices);
+      }
     }
 
     buffer = localStorage.getItem("showHelp");
-    if (buffer) {
-      setShowHelp(JSON.parse(buffer));
-    }
+    if (buffer) setShowHelp(JSON.parse(buffer));
 
     buffer = localStorage.getItem("hideMoney");
-    if (buffer) {
-      setHideMoney(JSON.parse(buffer));
-    }
+    if (buffer) setHideMoney(JSON.parse(buffer));
   }, []);
+
+  // retrieve pending stock prices
+  useEffect(() => {
+    if (pendingSymbols.length) {
+      setPendingSymbols([]);
+      pendingSymbols.forEach(async (symbol) => {
+        const url = `${API_ROOT}/eod?apikey=${API_KEY}&symbol=${symbol}`;
+        const response = await fetch(url);
+        const result = await response.json();
+        // if the symbol isn't found, a 404 error is returned
+        // store this as a 0 value so we don't keep asking for it
+        if (result.status !== "error" || result.code !== 429) {
+          // store the price
+          const date = new Date().toISOString().split("T")[0];
+          setPrices((prevPrices) => {
+            const nextPrices = { ...prevPrices };
+            const price =
+              result.status === "error" ? 0 : parseFloat(result.close);
+            nextPrices[symbol] = { price, date };
+            localStorage.setItem("prices", JSON.stringify(nextPrices));
+            return nextPrices;
+          });
+        }
+        // throttle our requests so we don't bump into the 12data API threshold
+        // which is 8 requests per minute, or roughly one every 7.5 seconds.
+        await new Promise((res) => setTimeout(res, 8000));
+      });
+    }
+  }, [pendingSymbols]);
+
+  // retrieve stock prices for symbols we don't have a price for yet
+  useEffect(() => {
+    // merge all symbols from across all account investments
+    const symbols: string[] = [
+      ...new Set(
+        data.accounts
+          .map((acc) => acc.investments)
+          .flat()
+          .map((inv) => inv.name)
+          .filter((name) => name && name.toUpperCase() === name)
+      ),
+    ];
+
+    // remove any will already have prices for
+    const symbolsWithoutPrices = symbols.filter(
+      (symbol) => !prices.hasOwnProperty(symbol)
+    );
+
+    if (symbolsWithoutPrices.length) setPendingSymbols(symbolsWithoutPrices);
+  }, [data, prices]);
 
   const toggleHelp = useCallback(() => {
     setShowHelp((priorShowHelp: boolean) => {
@@ -88,15 +151,15 @@ function App() {
     (func: (d: DataType) => void) => {
       const nextData = JSON.parse(JSON.stringify(data));
       func(nextData);
-      localStorage.setItem("retirementData", JSON.stringify(nextData));
+      localStorage.setItem("data", JSON.stringify(nextData));
       setData(nextData);
     },
     [data]
   );
 
   const appContextValue = useMemo(
-    () => ({ data, showHelp, hideMoney, updateData }),
-    [data, showHelp, hideMoney, updateData]
+    () => ({ data, showHelp, hideMoney, updateData, prices }),
+    [data, showHelp, hideMoney, updateData, prices]
   );
 
   const onExport = () => {
@@ -123,7 +186,7 @@ function App() {
       if (event?.target?.files?.length === 1) {
         const text = await new Response(event.target.files[0]).text();
         const nextData = JSON.parse(text);
-        localStorage.setItem("retirementData", JSON.stringify(nextData));
+        localStorage.setItem("data", JSON.stringify(nextData));
         setData(nextData);
       }
     };
@@ -131,7 +194,7 @@ function App() {
   };
 
   const onReset = () => {
-    localStorage.setItem("retirementData", JSON.stringify(initialData));
+    localStorage.setItem("data", JSON.stringify(initialData));
     setData(initialData);
   };
 

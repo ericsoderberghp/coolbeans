@@ -1,11 +1,12 @@
 import { createContext } from "react";
-import { DataType, TaxType, RMDType } from "./Types";
+import { DataType, TaxType, RMDType, PricesType } from "./Types";
 
 export type AppContextType = {
   data: DataType;
   updateData: (func: (d: DataType) => void) => void;
   showHelp: boolean;
   hideMoney: boolean;
+  prices: PricesType;
 };
 
 const initialTaxes: TaxType[] = [
@@ -99,4 +100,5 @@ export const AppContext = createContext<AppContextType>({
   updateData: defaultUpdateData,
   showHelp: true,
   hideMoney: false,
+  prices: {},
 });
