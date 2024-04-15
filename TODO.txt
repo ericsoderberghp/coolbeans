@@ -1,0 +1,19 @@
+TODO:
+- test keyboard interaction, especially forms
+- simplify workflow to update shares and basis?
+- enhance deposit capabilities
+  different incomes to different accounts
+  yearly contribution limits
+
+- debt, mortgages, etc.
+- inherited IRAs, RMDs thereof
+- handle scenario exploration
+  multiple data sets?
+  toggle income/expense/accounts on/off?
+  ???
+
+- enhance social security with per-age payments and choice on when to start claiming
+- Medicare
+- charts
+- slider controls to adjust values and watch projections change in real time
+   perhaps a "focused" number?
