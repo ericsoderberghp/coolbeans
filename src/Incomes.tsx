@@ -1,7 +1,7 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import { AppContext } from "./AppContext";
 import { IncomeType, DataType } from "./Types";
-import { humanDate, humanMoney } from "./utils";
+import { humanDate, humanMoney, useCancelOnEsc } from "./utils";
 
 const formDataNumericValue = (formData: FormData, name: string) =>
   parseFloat((formData.get(name) as string) ?? "");
@@ -22,7 +22,7 @@ const formEventToIncome = (
 
 type IncomeFormProps = {
   income?: IncomeType;
-  onCancel: React.MouseEventHandler<HTMLButtonElement>;
+  onCancel: () => void;
   onDelete?: React.MouseEventHandler<HTMLButtonElement>;
   onSubmit: React.FormEventHandler<HTMLFormElement>;
 };
@@ -34,6 +34,7 @@ const IncomeForm = (props: IncomeFormProps) => {
     onDelete,
     onSubmit,
   } = props;
+  useCancelOnEsc(onCancel);
   return (
     <form onSubmit={onSubmit}>
       <label>
@@ -55,8 +56,8 @@ const IncomeForm = (props: IncomeFormProps) => {
       <footer>
         <span className="kind">Income</span>
         <div className="controls">
-          {onDelete && <button onClick={onDelete}>delete</button>}
-          <button onClick={onCancel}>cancel</button>
+          {onDelete && <button type="button" onClick={onDelete}>delete</button>}
+          <button type="button" onClick={onCancel}>cancel</button>
           <button type="submit">save</button>
         </div>
       </footer>
@@ -109,6 +110,14 @@ export const Incomes = () => {
     });
   };
 
+  const incomes = useMemo(() =>
+    data.incomes.sort((i1, i2) => {
+      if (i1.start && !i2.start) return 1;
+      if (i2.start && !i1.start) return -1;
+      if (!i1.start && !i2.start) return i1.value - i2.value;
+      return (i1.start as string).localeCompare(i2.start as string);
+    }), [data]);
+
   return (
     <section>
       <div className="contentContainer">
@@ -128,7 +137,7 @@ export const Incomes = () => {
                 </tr>
               </thead>
               <tbody>
-                {data.incomes.map((income) => {
+                {incomes.map((income) => {
                   const key: number = income.id;
                   return (
                     <tr key={key}>

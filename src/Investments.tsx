@@ -1,13 +1,16 @@
 import React, { useContext, useMemo, useState } from "react";
 import { AppContext } from "./AppContext";
-import { AccountType, AssetClassType, InvestmentType, DataType } from "./Types";
-import { humanMoney } from "./utils";
+import { AccountType, AssetClassType, InvestmentType, DataType, PricesType } from "./Types";
+import { humanMoney, useCancelOnEsc } from "./utils";
 
 const formDataNumericValue = (formData: FormData, name: string) =>
   parseFloat((formData.get(name) as string) ?? "");
 
-const calculatedValue = (investment: InvestmentType, price: number) =>
-  (investment.shares || 0) * price;
+const investmentPrice = (investment: InvestmentType, prices: PricesType) =>
+  prices?.[investment.name]?.price || investment.price || 0;
+
+export const investmentValue = (investment: InvestmentType, prices: PricesType) =>
+  (investment.shares || 0) * investmentPrice(investment, prices);
 
 const formEventToInvestment = (
   event: React.FormEvent<HTMLFormElement>
@@ -36,7 +39,7 @@ const formEventToInvestment = (
 
 type InvestmentFormProps = {
   investment?: InvestmentType;
-  onCancel: React.MouseEventHandler<HTMLButtonElement>;
+  onCancel: () => void;
   onDelete?: React.MouseEventHandler<HTMLButtonElement>;
   onSubmit: React.FormEventHandler<HTMLFormElement>;
 };
@@ -49,6 +52,7 @@ const InvestmentForm = (props: InvestmentFormProps) => {
     onDelete,
     onSubmit,
   } = props;
+  useCancelOnEsc(onCancel);
 
   return (
     <form onSubmit={onSubmit}>
@@ -162,8 +166,8 @@ const InvestmentForm = (props: InvestmentFormProps) => {
       <footer>
         <span className="kind">Investment</span>
         <div className="controls">
-          {onDelete && <button onClick={onDelete}>delete</button>}
-          <button onClick={onCancel}>cancel</button>
+          {onDelete && <button type="button" onClick={onDelete}>delete</button>}
+          <button type="button" onClick={onCancel}>cancel</button>
           <button type="submit">save</button>
         </div>
       </footer>
@@ -215,8 +219,8 @@ export const Investment = (props: InvestmentProps) => {
     });
   };
 
-  const price = prices?.[investment.name]?.price || investment.price || 0;
-  const value = calculatedValue(investment, price);
+  const price = investmentPrice(investment, prices);
+  const value = investmentValue(investment, prices);
 
   return (
     <tr>
@@ -276,7 +280,7 @@ type InvestmentsProps = {
 export const Investments = (props: InvestmentsProps) => {
   const { account, assets } = props;
   const accountId = account.id;
-  const { updateData, hideMoney } = useContext(AppContext);
+  const { updateData, hideMoney, prices } = useContext(AppContext);
   const [adding, setAdding] = useState(false);
 
   const sortedInvestments = useMemo(
@@ -288,7 +292,7 @@ export const Investments = (props: InvestmentsProps) => {
   );
 
   const totalValue = account.investments.reduce(
-    (tot, inv) => ((inv.shares || 0) * (inv.price || 0) || 0) + tot,
+    (tot, inv) => investmentValue(inv, prices) + tot,
     0
   );
 

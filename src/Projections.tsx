@@ -341,7 +341,7 @@ const sellAssets = (
         const shareValue = inv.value / inv.shares;
         // no fractional shares
         const sharesSold = Math.ceil(minSale / shareValue);
-        const sale = shareValue * sharesSold;
+        const sale = Math.min(shareValue * sharesSold, inv.value);
         inv.value -= sale;
         inv.shares -= sharesSold;
         inv.sales += sale;

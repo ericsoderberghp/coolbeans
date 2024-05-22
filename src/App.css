@@ -88,6 +88,16 @@ input[type=file]::file-selector-button {
   border-radius: 0.25em;
 }
 
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid hsl(181, 80%, 40%);;
+}
+
+button[type="submit"] {
+  background-color: hsl(0 0% var(--foreground-lightness) / 10%);
+  border-width: 2px;
+}
+
 button:hover,
 .controls button:hover {
   cursor: pointer;
@@ -271,8 +281,6 @@ form footer {
 form button,
 footer div.controls button {
   font-weight: bold;
-  background-color: hsl(0 0% var(--foreground-lightness) / 5%);
-  color: inherit;
   padding: var(--quarter-size) var(--half-size);
 }
 

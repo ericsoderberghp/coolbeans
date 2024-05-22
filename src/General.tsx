@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "./AppContext";
 import { GeneralType } from "./Types";
+import { useCancelOnEsc } from "./utils";
 
 const formDataNumericValue = (formData: FormData, name: string) =>
   parseFloat((formData.get(name) as string) ?? "");
@@ -19,12 +20,13 @@ const formEventToGeneral = (
 
 type GeneralFormProps = {
   general: GeneralType;
-  onCancel: React.MouseEventHandler<HTMLButtonElement>;
+  onCancel: () => void;
   onSubmit: React.FormEventHandler<HTMLFormElement>;
 };
 
 const GeneralForm = (props: GeneralFormProps) => {
   const { onCancel, onSubmit } = props;
+  useCancelOnEsc(onCancel);
   return (
     <form onSubmit={onSubmit}>
       <label>
@@ -48,7 +50,7 @@ const GeneralForm = (props: GeneralFormProps) => {
       <footer>
         <span className="kind">Projection</span>
         <div className="controls">
-          <button onClick={onCancel}>cancel</button>
+          <button type="button" onClick={onCancel}>cancel</button>
           <button type="submit">save</button>
         </div>
       </footer>

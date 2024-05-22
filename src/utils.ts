@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 export const humanDate = (date?: string) => {
   if (!date) return undefined;
   const [year, month, day] = date.split("-");
@@ -17,4 +19,16 @@ export const humanMoney = (value?: number, hideValues?: boolean, raw: boolean = 
     return `$${trimmedValue.toLocaleString()}`;
   }
   return '';
+};
+
+export const useCancelOnEsc = (onCancel: () => void) => {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onCancel();
+    };
+
+    document.addEventListener('keypress', onKey);
+
+    return () => document.removeEventListener('keypress', onKey);
+  }, [onCancel]);
 };

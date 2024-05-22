@@ -1,9 +1,10 @@
 TODO:
-- test keyboard interaction, especially forms
-- simplify workflow to update shares and basis?
+- simplify workflow to update shares and basis
 - enhance deposit capabilities
   different incomes to different accounts
   yearly contribution limits
+- charitable giving
+- donor advised fund
 
 - debt, mortgages, etc.
 - inherited IRAs, RMDs thereof

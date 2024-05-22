@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "./AppContext";
 import { RMDType, DataType } from "./Types";
+import { useCancelOnEsc } from "./utils";
 
 const formDataNumericValue = (formData: FormData, name: string) =>
   parseFloat((formData.get(name) as string) ?? "");
@@ -19,7 +20,7 @@ const formEventToIncome = (
 
 type RMDFormProps = {
   rmd?: RMDType;
-  onCancel: React.MouseEventHandler<HTMLButtonElement>;
+  onCancel: () => void;
   onDelete?: React.MouseEventHandler<HTMLButtonElement>;
   onSubmit: React.FormEventHandler<HTMLFormElement>;
 };
@@ -31,6 +32,7 @@ const RMDForm = (props: RMDFormProps) => {
     onDelete,
     onSubmit,
   } = props;
+  useCancelOnEsc(onCancel);
   return (
     <form onSubmit={onSubmit}>
       <label>
@@ -48,8 +50,8 @@ const RMDForm = (props: RMDFormProps) => {
       <footer>
         <span className="kind">RMD</span>
         <div className="controls">
-          {onDelete && <button onClick={onDelete}>delete</button>}
-          <button onClick={onCancel}>cancel</button>
+          {onDelete && <button type="button" onClick={onDelete}>delete</button>}
+          <button type="button" onClick={onCancel}>cancel</button>
           <button type="submit">save</button>
         </div>
       </footer>

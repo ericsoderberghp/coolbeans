@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "./AppContext";
 import { TaxType, RateType, DataType } from "./Types";
-import { humanMoney } from "./utils";
+import { humanMoney, useCancelOnEsc } from "./utils";
 
 const formDataNumericValue = (formData: FormData, name: string) =>
   parseFloat((formData.get(name) as string) ?? "");
@@ -21,13 +21,14 @@ const formEventToRate = (event: React.FormEvent<HTMLFormElement>): RateType => {
 
 type RateFormProps = {
   rate?: RateType;
-  onCancel: React.MouseEventHandler<HTMLButtonElement>;
+  onCancel: () => void;
   onDelete?: React.MouseEventHandler<HTMLButtonElement>;
   onSubmit: React.FormEventHandler<HTMLFormElement>;
 };
 
 const RateForm = (props: RateFormProps) => {
   const { rate = { id: 0 } as RateType, onCancel, onDelete, onSubmit } = props;
+  useCancelOnEsc(onCancel);
   return (
     <form onSubmit={onSubmit}>
       <label>
@@ -51,8 +52,8 @@ const RateForm = (props: RateFormProps) => {
       <footer>
         <span className="kind">Rate</span>
         <div className="controls">
-          {onDelete && <button onClick={onDelete}>delete</button>}
-          <button onClick={onCancel}>cancel</button>
+          {onDelete && <button type="button" onClick={onDelete}>delete</button>}
+          <button type="button" onClick={onCancel}>cancel</button>
           <button type="submit">save</button>
         </div>
       </footer>

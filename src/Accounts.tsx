@@ -1,8 +1,8 @@
 import React, { useContext, useMemo, useState } from "react";
 import { AppContext } from "./AppContext";
 import { AccountType, AccountKindType, DataType } from "./Types";
-import { Investments } from "./Investments";
-import { humanMoney } from "./utils";
+import { Investments, investmentValue } from "./Investments";
+import { humanMoney, useCancelOnEsc } from "./utils";
 
 const formDataNumericValue = (formData: FormData, name: string) =>
   parseFloat((formData.get(name) as string) ?? "");
@@ -31,7 +31,7 @@ const formEventToAccount = (
 
 type AccountFormProps = {
   account?: AccountType;
-  onCancel: React.MouseEventHandler<HTMLButtonElement>;
+  onCancel: () => void;
   onDelete?: React.MouseEventHandler<HTMLButtonElement>;
   onSubmit: React.FormEventHandler<HTMLFormElement>;
 };
@@ -44,6 +44,7 @@ const AccountForm = (props: AccountFormProps) => {
     onDelete,
     onSubmit,
   } = props;
+  useCancelOnEsc(onCancel);
 
   return (
     <form onSubmit={onSubmit}>
@@ -129,8 +130,8 @@ const AccountForm = (props: AccountFormProps) => {
       <footer>
         <span className="kind">Account</span>
         <div className="controls">
-          {onDelete && <button onClick={onDelete}>delete</button>}
-          <button onClick={onCancel}>cancel</button>
+          {onDelete && <button type="button" onClick={onDelete}>delete</button>}
+          <button type="button" onClick={onCancel}>cancel</button>
           <button type="submit">save</button>
         </div>
       </footer>
@@ -146,14 +147,14 @@ type AccountProps = {
 export const Account = (props: AccountProps) => {
   const { account, assets } = props;
   const id = account.id;
-  const { updateData, hideMoney } = useContext(AppContext);
+  const { updateData, hideMoney, prices } = useContext(AppContext);
   const [editing, setEditing] = useState(false);
   const [showInvestments, setShowInvestments] = useState(
     !!account.investments.length
   );
 
   const investmentsValue = account.investments.reduce(
-    (tot, inv) => ((inv.shares || 0) * (inv.price || 0) || 0) + tot,
+    (tot, inv) => investmentValue(inv, prices) + tot,
     0
   );
 

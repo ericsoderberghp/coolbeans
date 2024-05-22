@@ -1,7 +1,7 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import { AppContext } from "./AppContext";
 import { ExpenseType, DataType } from "./Types";
-import { humanDate, humanMoney } from "./utils";
+import { humanDate, humanMoney, useCancelOnEsc } from "./utils";
 
 const formDataNumericValue = (formData: FormData, name: string) =>
   parseFloat((formData.get(name) as string) ?? "");
@@ -26,7 +26,7 @@ const formEventToExpense = (
 
 type ExpenseFormProps = {
   expense?: ExpenseType;
-  onCancel: React.MouseEventHandler<HTMLButtonElement>;
+  onCancel: () => void;
   onDelete?: React.MouseEventHandler<HTMLButtonElement>;
   onSubmit: React.FormEventHandler<HTMLFormElement>;
 };
@@ -38,6 +38,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
     onDelete,
     onSubmit,
   } = props;
+  useCancelOnEsc(onCancel);
   return (
     <form onSubmit={onSubmit}>
       <label>
@@ -67,8 +68,8 @@ const ExpenseForm = (props: ExpenseFormProps) => {
       <footer>
         <span className="kind">Expense</span>
         <div className="controls">
-          {onDelete && <button onClick={onDelete}>delete</button>}
-          <button onClick={onCancel}>cancel</button>
+          {onDelete && <button type="button" onClick={onDelete}>delete</button>}
+          <button type="button" onClick={onCancel}>cancel</button>
           <button type="submit">save</button>
         </div>
       </footer>
@@ -126,6 +127,14 @@ export const Expenses = () => {
     });
   };
 
+  const expenses = useMemo(() =>
+    data.expenses.sort((e1, e2) => {
+      if (e1.start && !e2.start) return 1;
+      if (e2.start && !e1.start) return -1;
+      if (!e1.start && !e2.start) return e1.value - e2.value;
+      return (e1.start as string).localeCompare(e2.start as string);
+    }), [data]);
+
   return (
     <section>
       <div className="contentContainer">
@@ -134,7 +143,7 @@ export const Expenses = () => {
             <h2>Expenses</h2>
           </header>
 
-          {!!data.expenses.length && (
+          {!!expenses.length && (
             <table className="records">
               <thead>
                 <tr>

@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import { AppContext } from "./AppContext";
 import { TaxType, DataType } from "./Types";
 import { Rates } from "./Rates";
+import { useCancelOnEsc } from "./utils";
 
 const formEventToTax = (event: React.FormEvent<HTMLFormElement>): TaxType => {
   const formData = new FormData(event.currentTarget);
@@ -16,7 +17,7 @@ const formEventToTax = (event: React.FormEvent<HTMLFormElement>): TaxType => {
 
 type TaxFormProps = {
   tax?: TaxType;
-  onCancel: React.MouseEventHandler<HTMLButtonElement>;
+  onCancel: () =>  void;
   onDelete?: React.MouseEventHandler<HTMLButtonElement>;
   onSubmit: React.FormEventHandler<HTMLFormElement>;
 };
@@ -28,6 +29,7 @@ const TaxForm = (props: TaxFormProps) => {
     onDelete,
     onSubmit,
   } = props;
+  useCancelOnEsc(onCancel);
   return (
     <form onSubmit={onSubmit}>
       <label>
@@ -60,8 +62,8 @@ const TaxForm = (props: TaxFormProps) => {
       <footer>
         <span className="kind">Tax</span>
         <div className="controls">
-          {onDelete && <button onClick={onDelete}>delete</button>}
-          <button onClick={onCancel}>cancel</button>
+          {onDelete && <button type="button" onClick={onDelete}>delete</button>}
+          <button type="button" onClick={onCancel}>cancel</button>
           <button type="submit">save</button>
         </div>
       </footer>
