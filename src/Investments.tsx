@@ -235,7 +235,7 @@ export const Investment = (props: InvestmentProps) => {
         </td>
       ) : (
         [
-          <td key="symbol">{investment.name}</td>,
+          <th key="symbol" role="rowheader">{investment.name}</th>,
           <td key="price" className="number">
             {humanMoney(price, false, true)}
           </td>,

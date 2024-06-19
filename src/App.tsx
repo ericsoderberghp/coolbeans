@@ -13,6 +13,8 @@ import { Projections } from "./Projections";
 const API_ROOT = "https://api.twelvedata.com";
 const API_KEY = process.env.REACT_APP_TDKEY;
 
+if (!API_KEY) console.warn('Missing REACT_APP_TDKEY environment variable');
+
 const scheme = {
   dark: { background: "6%", foreground: "85%" },
   light: { background: "100%", foreground: "10%" },
@@ -124,7 +126,7 @@ function App() {
       ),
     ];
 
-    // remove any will already have prices for
+    // remove any we already have prices for
     const symbolsWithoutPrices = symbols.filter(
       (symbol) => !prices.hasOwnProperty(symbol)
     );

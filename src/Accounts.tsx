@@ -193,7 +193,7 @@ export const Account = (props: AccountProps) => {
         </td>
       ) : (
         [
-          <td key="name">{account.name}</td>,
+          <th key="name" role="rowheader">{account.name}</th>,
           <td key="kind">{account.kind}</td>,
           <td key="value" className="number">
             {humanMoney(value, hideMoney)}

@@ -134,6 +134,7 @@ export const Incomes = () => {
                   <th>per year</th>
                   <th>start</th>
                   <th>stop</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -152,7 +153,7 @@ export const Incomes = () => {
                         </td>
                       ) : (
                         [
-                          <td key="name">{income.name}</td>,
+                          <th key="name" role="rowheader">{income.name}</th>,
                           <td key="value" className="number">
                             {humanMoney(income.value || 0, hideMoney)}
                           </td>,

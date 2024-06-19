@@ -171,7 +171,7 @@ export const Expenses = () => {
                         </td>
                       ) : (
                         [
-                          <td key="name">{expense.name}</td>,
+                          <th key="name" role="rowheader">{expense.name}</th>,
                           <td key="value" className="number">
                             {humanMoney(expense.value || 0, hideMoney)}
                           </td>,

@@ -231,13 +231,15 @@ th {
   text-align: left;
 }
 
-th {
+thead th {
   vertical-align: bottom;
+  font-weight: 500;
+  border-bottom: 1px solid hsl(0 0% var(--foreground-lightness) / 20%);
 }
 
-table.years tbody tr:not(.transactions):hover > td,
+tbody > tr:not(:has(table.records)):not(:has(form)):hover,
 table.years tbody tr:not(.transactions):hover > th {
-  background-color: hsl(0 0% var(--foreground-lightness) / 5%);
+  background-color: hsl(53, 100%, 95%, 1);
 }
 
 tr.transactions {

@@ -46,7 +46,7 @@ export const AssetClasses = () => {
                 const value = assetClasses[key];
                 return (
                   <tr key={key}>
-                    <td>{key}</td>
+                    <th role="rowheader">{key}</th>
                     <td className="number">{humanMoney(value, hideMoney)}</td>
                     <td className="number">{`${
                       Math.round((value / total) * 1000) / 10
