@@ -170,12 +170,14 @@ export const Rates = (props: RatesProps) => {
         <RateForm onSubmit={add} onCancel={() => stopAdding()} />
       </dialog>
       <dialog ref={editRef}>
-        <RateForm
-          rate={tax.rates.find((r) => r.id === editId)}
-          onSubmit={update}
-          onCancel={() => stopEditing()}
-          onDelete={delet}
-        />
+        {editId && (
+          <RateForm
+            rate={tax.rates.find((r) => r.id === editId)}
+            onSubmit={update}
+            onCancel={() => stopEditing()}
+            onDelete={delet}
+          />
+        )}
       </dialog>
     </div>
   );

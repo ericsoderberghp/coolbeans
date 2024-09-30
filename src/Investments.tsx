@@ -365,12 +365,12 @@ export const Investments = (props: InvestmentsProps) => {
         <InvestmentForm onSubmit={add} onCancel={() => stopAdding()} />
       </dialog>
       <dialog ref={editRef}>
-        <InvestmentForm
+        {editId && (<InvestmentForm
           investment={sortedInvestments.find((i) => i.id === editId)}
           onSubmit={update}
           onCancel={() => stopEditing()}
           onDelete={delet}
-        />
+        />)}
       </dialog>
     </div>
   );

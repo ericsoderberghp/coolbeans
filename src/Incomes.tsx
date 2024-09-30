@@ -191,12 +191,14 @@ export const Incomes = () => {
           <IncomeForm onSubmit={add} onCancel={() => stopAdding()} />
         </dialog>
         <dialog ref={editRef}>
-          <IncomeForm
-            income={incomes.find((i) => i.id === editId)}
-            onSubmit={update}
-            onCancel={() => stopEditing()}
-            onDelete={delet}
-          />
+          {editId && (
+            <IncomeForm
+              income={incomes.find((i) => i.id === editId)}
+              onSubmit={update}
+              onCancel={() => stopEditing()}
+              onDelete={delet}
+            />
+          )}
         </dialog>
       </div>
     </section>

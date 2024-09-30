@@ -181,12 +181,14 @@ export const Taxes = () => {
           <TaxForm onSubmit={add} onCancel={() => stopAdding()} />
         </dialog>
         <dialog ref={editRef}>
-          <TaxForm
-            tax={data.taxes.find((t) => t.id === editId)}
-            onSubmit={update}
-            onCancel={() => stopEditing()}
-            onDelete={delet}
-          />
+          {editId && (
+            <TaxForm
+              tax={data.taxes.find((t) => t.id === editId)}
+              onSubmit={update}
+              onCancel={() => stopEditing()}
+              onDelete={delet}
+            />
+          )}
         </dialog>
       </div>
     </section>

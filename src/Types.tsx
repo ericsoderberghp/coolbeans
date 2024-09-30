@@ -9,6 +9,7 @@ export type AccountKindType =
   | "401k"
   | "pension"
   | "Roth IRA"
+  | "Roth 401k"
   | "VUL"
   | "brokerage";
 

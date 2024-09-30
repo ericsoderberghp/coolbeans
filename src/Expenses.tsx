@@ -211,12 +211,14 @@ export const Expenses = () => {
           <ExpenseForm onSubmit={add} onCancel={() => stopAdding()} />
         </dialog>
         <dialog ref={editRef}>
-          <ExpenseForm
-            expense={expenses.find((e) => e.id === editId)}
-            onSubmit={update}
-            onCancel={() => stopEditing()}
-            onDelete={delet}
-          />
+          {editId && (
+            <ExpenseForm
+              expense={expenses.find((e) => e.id === editId)}
+              onSubmit={update}
+              onCancel={() => stopEditing()}
+              onDelete={delet}
+            />
+          )}
         </dialog>
       </div>
     </section>

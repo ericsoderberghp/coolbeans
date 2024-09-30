@@ -72,6 +72,7 @@ const AccountForm = (props: AccountFormProps) => {
           <option>IRA</option>
           <option>401k</option>
           <option>Roth IRA</option>
+          <option>Roth 401k</option>
           <option>VUL</option>
           <option>brokerage</option>
           <option>pension</option>
@@ -330,12 +331,14 @@ export const Accounts = () => {
           <AccountForm onSubmit={add} onCancel={() => stopAdding()} />
         </dialog>
         <dialog ref={editRef}>
-          <AccountForm
-            account={sortedAccounts.find((a) => a.id === editId)}
-            onSubmit={update}
-            onCancel={() => stopEditing()}
-            onDelete={delet}
-          />
+          {editId && (
+            <AccountForm
+              account={sortedAccounts.find((a) => a.id === editId)}
+              onSubmit={update}
+              onCancel={() => stopEditing()}
+              onDelete={delet}
+            />
+          )}
         </dialog>
       </div>
     </section>
