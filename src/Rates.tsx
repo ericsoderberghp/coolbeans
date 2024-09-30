@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useRef, useState } from "react";
 import { AppContext } from "./AppContext";
 import { TaxType, RateType, DataType } from "./Types";
 import { humanMoney, useCancelOnEsc } from "./utils";
@@ -31,6 +31,12 @@ const RateForm = (props: RateFormProps) => {
   useCancelOnEsc(onCancel);
   return (
     <form onSubmit={onSubmit}>
+      <header>
+        <span className="kind">Rate</span>
+        <div className="controls">
+          <button type="button" onClick={onCancel}>cancel</button>
+        </div>
+      </header>
       <label>
         rate %
         <input
@@ -50,10 +56,8 @@ const RateForm = (props: RateFormProps) => {
         <input name="max" type="number" defaultValue={rate.max} />
       </label>
       <footer>
-        <span className="kind">Rate</span>
         <div className="controls">
           {onDelete && <button type="button" onClick={onDelete}>delete</button>}
-          <button type="button" onClick={onCancel}>cancel</button>
           <button type="submit">save</button>
         </div>
       </footer>
@@ -74,14 +78,26 @@ type RatesProps = {
 export const Rates = (props: RatesProps) => {
   const { taxId } = props;
   const { data, updateData } = useContext(AppContext);
-  const [adding, setAdding] = useState(false);
-  const [editing, setEditing] = useState(0);
   const tax = getTax(data, taxId);
+  const [editId, setEditId] = useState(0);
+  const addRef = useRef<HTMLDialogElement>(null);
+  const editRef = useRef<HTMLDialogElement>(null);
 
-  const startAdding = () => () => setAdding(true);
-  const startEditing = (id: number) => () => setEditing(id);
+  const startAdding = () => addRef.current?.showModal();
 
-  const addRate = (event: React.FormEvent<HTMLFormElement>) => {
+  const stopAdding = () => addRef.current?.close();
+
+  const startEditing = (id: number) => {
+    setEditId(id);
+    editRef.current?.showModal();
+  }
+
+  const stopEditing = () => {
+    setEditId(0);
+    editRef.current?.close();
+  }
+
+  const add = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     updateData((nextData) => {
       const tax = getTax(nextData, taxId);
@@ -90,27 +106,28 @@ export const Rates = (props: RatesProps) => {
       rate.id = Math.max(0, ...tax.rates.map((rate: RateType) => rate.id)) + 1;
       tax.rates.push(rate);
     });
-    setAdding(false);
+    stopAdding();
   };
 
-  const updateRate =
-    (id: number) => (event: React.FormEvent<HTMLFormElement>) => {
+  const update =
+    (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       updateData((nextData) => {
         const tax = getTax(nextData, taxId);
         const rate = formEventToRate(event);
-        rate.id = id;
-        const index = tax.rates.findIndex((rate: RateType) => rate.id === id);
+        rate.id = editId;
+        const index = tax.rates.findIndex((rate: RateType) => rate.id === editId);
         tax.rates.splice(index, 1, rate);
       });
-      setEditing(0);
+      stopEditing();
     };
 
-  const deleteRate = (id: number) => () => {
+  const delet = () => {
     updateData((nextData: DataType) => {
       const tax = getTax(nextData, taxId);
-      tax.rates = tax.rates.filter((rate: RateType) => rate.id !== id);
+      tax.rates = tax.rates.filter((rate: RateType) => rate.id !== editId);
     });
+    stopEditing();
   };
 
   return (
@@ -124,53 +141,42 @@ export const Rates = (props: RatesProps) => {
           </tr>
         </thead>
         <tbody>
-          {tax.rates.map((rate) => {
-            const key: number = rate.id;
-            return (
-              <tr key={key}>
-                {editing === key ? (
-                  <td colSpan={4}>
-                    <RateForm
-                      rate={rate}
-                      onSubmit={updateRate(key)}
-                      onCancel={() => setEditing(0)}
-                      onDelete={deleteRate(key)}
-                    />
-                  </td>
-                ) : (
-                  [
-                    <td key="return" className="number">
-                      {rate.rate || 0}%
-                    </td>,
-                    <td key="min" className="number">
-                      {humanMoney(rate.min)}
-                    </td>,
-                    <td key="max" className="number">
-                      {humanMoney(rate.max)}
-                    </td>,
-                    <td key="controls">
-                      <button onClick={startEditing(key)}>edit</button>
-                    </td>,
-                  ]
-                )}
-              </tr>
-            );
-          })}
+          {tax.rates.map((rate) => (
+            <tr key={rate.id}>
+              <td key="return" className="number">
+                {rate.rate || 0}%
+              </td>
+              <td key="min" className="number">
+                {humanMoney(rate.min)}
+              </td>
+              <td key="max" className="number">
+                {humanMoney(rate.max)}
+              </td>
+              <td key="controls">
+                <button onClick={() => startEditing(rate.id)}>edit</button>
+              </td>
+            </tr>
+          )
+          )}
         </tbody>
       </table>
       <footer>
-        {adding ? (
-          <RateForm
-            key="add"
-            onSubmit={addRate}
-            onCancel={() => setAdding(false)}
-          />
-        ) : (
-          <button key="add" onClick={startAdding()}>
-            add rate
-          </button>
-        )}
+        <button key="add" onClick={() => startAdding()}>
+          add rate
+        </button>
       </footer>
+
+      <dialog ref={addRef}>
+        <RateForm onSubmit={add} onCancel={() => stopAdding()} />
+      </dialog>
+      <dialog ref={editRef}>
+        <RateForm
+          rate={tax.rates.find((r) => r.id === editId)}
+          onSubmit={update}
+          onCancel={() => stopEditing()}
+          onDelete={delet}
+        />
+      </dialog>
     </div>
   );
 };

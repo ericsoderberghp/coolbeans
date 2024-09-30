@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useContext, useMemo, useRef, useState } from "react";
 import { AppContext } from "./AppContext";
 import { AccountType, AssetClassType, InvestmentType, DataType, PricesType } from "./Types";
 import { humanMoney, useCancelOnEsc } from "./utils";
@@ -56,6 +56,12 @@ const InvestmentForm = (props: InvestmentFormProps) => {
 
   return (
     <form onSubmit={onSubmit}>
+      <header>
+        <span className="kind">Investment</span>
+        <div className="controls">
+          <button type="button" onClick={onCancel}>cancel</button>
+        </div>
+      </header>
       <label>
         <div>
           <span>symbol</span>
@@ -164,10 +170,8 @@ const InvestmentForm = (props: InvestmentFormProps) => {
         />
       </label>
       <footer>
-        <span className="kind">Investment</span>
         <div className="controls">
           {onDelete && <button type="button" onClick={onDelete}>delete</button>}
-          <button type="button" onClick={onCancel}>cancel</button>
           <button type="submit">save</button>
         </div>
       </footer>
@@ -184,90 +188,51 @@ const getAccount = (data: DataType, id: number) => {
 };
 
 type InvestmentProps = {
-  account: AccountType;
   assets: number;
   investment: InvestmentType;
+  onEdit: () => void;
 };
 
 export const Investment = (props: InvestmentProps) => {
-  const { account, assets, investment } = props;
-  const id = investment.id;
-  const accountId = account.id;
-  const { updateData, hideMoney, prices } = useContext(AppContext);
-  const [editing, setEditing] = useState(false);
-
-  const update = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    updateData((nextData) => {
-      const account = getAccount(nextData, accountId);
-      const investment = formEventToInvestment(event);
-      investment.id = id;
-      const index = account.investments.findIndex(
-        (investment: InvestmentType) => investment.id === id
-      );
-      account.investments.splice(index, 1, investment);
-    });
-    setEditing(false);
-  };
-
-  const delet = () => {
-    updateData((nextData: DataType) => {
-      const account = getAccount(nextData, accountId);
-      account.investments = account.investments.filter(
-        (investment: InvestmentType) => investment.id !== id
-      );
-    });
-  };
+  const { assets, investment, onEdit } = props;
+  const { hideMoney, prices } = useContext(AppContext);
 
   const price = investmentPrice(investment, prices);
   const value = investmentValue(investment, prices);
 
   return (
     <tr>
-      {editing ? (
-        <td colSpan={10}>
-          <InvestmentForm
-            investment={investment}
-            onSubmit={update}
-            onCancel={() => setEditing(false)}
-            onDelete={delet}
-          />
-        </td>
-      ) : (
-        [
-          <th key="symbol" role="rowheader">{investment.name}</th>,
-          <td key="price" className="number">
-            {humanMoney(price, false, true)}
-          </td>,
-          <td key="shares" className="number">
-            {hideMoney ? "**" : investment.shares}
-          </td>,
-          <td key="value" className="number">
-            {humanMoney(value, hideMoney)}
-          </td>,
-          <td key="percent" className="number">
-            {`${Math.round((value / assets) * 1000) / 10}%`}
-          </td>,
-          <td key="return" className="number">
-            {investment.return || 0}%
-          </td>,
-          <td key="dividend" className="number">
-            {investment.dividend || 0}%
-          </td>,
-          <td key="gains" className="number">
-            {humanMoney(
-              investment.basis ? value - investment.basis : undefined,
-              hideMoney
-            )}
-          </td>,
-          <td key="priority" className="number">
-            {investment.priority}
-          </td>,
-          <td key="controls">
-            <button onClick={() => setEditing(true)}>edit</button>
-          </td>,
-        ]
-      )}
+      <th key="symbol" role="rowheader">{investment.name}</th>
+      <td key="price" className="number">
+        {humanMoney(price, false, true)}
+      </td>
+      <td key="shares" className="number">
+        {hideMoney ? "**" : investment.shares}
+      </td>
+      <td key="value" className="number">
+        {humanMoney(value, hideMoney)}
+      </td>
+      <td key="percent" className="number">
+        {`${Math.round((value / assets) * 1000) / 10}%`}
+      </td>
+      <td key="return" className="number">
+        {investment.return || 0}%
+      </td>
+      <td key="dividend" className="number">
+        {investment.dividend || 0}%
+      </td>
+      <td key="gains" className="number">
+        {humanMoney(
+          investment.basis ? value - investment.basis : undefined,
+          hideMoney
+        )}
+      </td>
+      <td key="priority" className="number">
+        {investment.priority}
+      </td>
+      <td key="controls">
+        <button onClick={onEdit}>edit</button>
+      </td>
     </tr>
   );
 };
@@ -281,7 +246,23 @@ export const Investments = (props: InvestmentsProps) => {
   const { account, assets } = props;
   const accountId = account.id;
   const { updateData, hideMoney, prices } = useContext(AppContext);
-  const [adding, setAdding] = useState(false);
+  const [editId, setEditId] = useState(0);
+  const addRef = useRef<HTMLDialogElement>(null);
+  const editRef = useRef<HTMLDialogElement>(null);
+
+  const startAdding = () => addRef.current?.showModal();
+
+  const stopAdding = () => addRef.current?.close();
+
+  const startEditing = (id: number) => {
+    setEditId(id);
+    editRef.current?.showModal();
+  }
+
+  const stopEditing = () => {
+    setEditId(0);
+    editRef.current?.close();
+  }
 
   const sortedInvestments = useMemo(
     () =>
@@ -311,7 +292,31 @@ export const Investments = (props: InvestmentsProps) => {
         ) + 1;
       account.investments.push(investment);
     });
-    setAdding(false);
+    stopAdding();
+  };
+
+  const update = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    updateData((nextData) => {
+      const account = getAccount(nextData, accountId);
+      const investment = formEventToInvestment(event);
+      investment.id = editId;
+      const index = account.investments.findIndex(
+        (investment: InvestmentType) => investment.id === editId
+      );
+      account.investments.splice(index, 1, investment);
+    });
+    stopEditing();
+  };
+
+  const delet = () => {
+    updateData((nextData: DataType) => {
+      const account = getAccount(nextData, accountId);
+      account.investments = account.investments.filter(
+        (investment: InvestmentType) => investment.id !== editId
+      );
+    });
+    stopEditing();
   };
 
   return (
@@ -336,9 +341,9 @@ export const Investments = (props: InvestmentsProps) => {
             {sortedInvestments.map((investment) => (
               <Investment
                 key={investment.id}
-                account={account}
                 investment={investment}
                 assets={assets}
+                onEdit={() => startEditing(investment.id)}
               />
             ))}
           </tbody>
@@ -353,12 +358,20 @@ export const Investments = (props: InvestmentsProps) => {
         </table>
       )}
       <footer>
-        {adding ? (
-          <InvestmentForm onSubmit={add} onCancel={() => setAdding(false)} />
-        ) : (
-          <button onClick={() => setAdding(true)}>add investment</button>
-        )}
+        <button onClick={() => startAdding()}>add investment</button>
       </footer>
+
+      <dialog ref={addRef}>
+        <InvestmentForm onSubmit={add} onCancel={() => stopAdding()} />
+      </dialog>
+      <dialog ref={editRef}>
+        <InvestmentForm
+          investment={sortedInvestments.find((i) => i.id === editId)}
+          onSubmit={update}
+          onCancel={() => stopEditing()}
+          onDelete={delet}
+        />
+      </dialog>
     </div>
   );
 };

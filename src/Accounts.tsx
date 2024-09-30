@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useContext, useMemo, useRef, useState } from "react";
 import { AppContext } from "./AppContext";
 import { AccountType, AccountKindType, DataType } from "./Types";
 import { Investments, investmentValue } from "./Investments";
@@ -48,6 +48,12 @@ const AccountForm = (props: AccountFormProps) => {
 
   return (
     <form onSubmit={onSubmit}>
+      <header>
+        <span className="kind">Account</span>
+        <div className="controls">
+          <button type="button" onClick={onCancel}>cancel</button>
+        </div>
+      </header>
       <label>
         name
         <input name="name" type="text" defaultValue={account.name} />
@@ -128,10 +134,8 @@ const AccountForm = (props: AccountFormProps) => {
         />
       </label>
       <footer>
-        <span className="kind">Account</span>
         <div className="controls">
           {onDelete && <button type="button" onClick={onDelete}>delete</button>}
-          <button type="button" onClick={onCancel}>cancel</button>
           <button type="submit">save</button>
         </div>
       </footer>
@@ -142,13 +146,13 @@ const AccountForm = (props: AccountFormProps) => {
 type AccountProps = {
   account: AccountType;
   assets: number;
+  onEdit: () => void;
 };
 
 export const Account = (props: AccountProps) => {
-  const { account, assets } = props;
+  const { account, assets, onEdit } = props;
   const id = account.id;
-  const { updateData, hideMoney, prices } = useContext(AppContext);
-  const [editing, setEditing] = useState(false);
+  const { hideMoney, prices } = useContext(AppContext);
   const [showInvestments, setShowInvestments] = useState(
     !!account.investments.length
   );
@@ -160,64 +164,31 @@ export const Account = (props: AccountProps) => {
 
   const value = (account.value || 0) + investmentsValue;
 
-  const update = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    updateData((nextData) => {
-      const nextAccount = formEventToAccount(event);
-      nextAccount.id = id;
-      nextAccount.investments = account.investments;
-      const index = nextData.accounts.findIndex((account) => account.id === id);
-      nextData.accounts.splice(index, 1, nextAccount);
-    });
-    setEditing(false);
-  };
-
-  const delet = () => {
-    updateData((nextData: DataType) => {
-      nextData.accounts = nextData.accounts.filter(
-        (account) => account.id !== id
-      );
-    });
-  };
-
   return [
     <tr key={id}>
-      {editing ? (
-        <td colSpan={8}>
-          <AccountForm
-            account={account}
-            onSubmit={update}
-            onCancel={() => setEditing(false)}
-            onDelete={delet}
-          />
-        </td>
-      ) : (
-        [
-          <th key="name" role="rowheader">{account.name}</th>,
-          <td key="kind">{account.kind}</td>,
-          <td key="value" className="number">
-            {humanMoney(value, hideMoney)}
-          </td>,
-          <td key="percent" className="number">
-            {`${Math.round((value / assets) * 100)}%`}
-          </td>,
-          <td key="return" className="number">
-            {account.return && `${account.return}%`}
-          </td>,
-          <td key="dividend" className="number">
-            {account.dividend && `${account.dividend}%`}
-          </td>,
-          <td key="priority" className="number">
-            {account.priority}
-          </td>,
-          <td key="controls" className="controls">
-            <button onClick={() => setEditing(true)}>edit</button>
-            <button onClick={() => setShowInvestments(!showInvestments)}>
-              investments
-            </button>
-          </td>,
-        ]
-      )}
+      <th key="name" role="rowheader">{account.name}</th>
+      <td key="kind">{account.kind}</td>
+      <td key="value" className="number">
+        {humanMoney(value, hideMoney)}
+      </td>
+      <td key="percent" className="number">
+        {`${Math.round((value / assets) * 100)}%`}
+      </td>
+      <td key="return" className="number">
+        {account.return && `${account.return}%`}
+      </td>
+      <td key="dividend" className="number">
+        {account.dividend && `${account.dividend}%`}
+      </td>
+      <td key="priority" className="number">
+        {account.priority}
+      </td>
+      <td key="controls" className="controls">
+        <button onClick={onEdit}>edit</button>
+        <button onClick={() => setShowInvestments(!showInvestments)}>
+          investments
+        </button>
+      </td>
     </tr>,
     showInvestments ? (
       <tr key="investments">
@@ -231,7 +202,23 @@ export const Account = (props: AccountProps) => {
 
 export const Accounts = () => {
   const { data, updateData, showHelp, hideMoney } = useContext(AppContext);
-  const [adding, setAdding] = useState(false);
+  const [editId, setEditId] = useState(0);
+  const addRef = useRef<HTMLDialogElement>(null);
+  const editRef = useRef<HTMLDialogElement>(null);
+
+  const startAdding = () => addRef.current?.showModal();
+
+  const stopAdding = () => addRef.current?.close();
+
+  const startEditing = (id: number) => {
+    setEditId(id);
+    editRef.current?.showModal();
+  }
+
+  const stopEditing = () => {
+    setEditId(0);
+    editRef.current?.close();
+  }
 
   const sortedAccounts = useMemo(
     () =>
@@ -263,7 +250,28 @@ export const Accounts = () => {
         Math.max(0, ...nextData.accounts.map((account) => account.id)) + 1;
       nextData.accounts.push(account);
     });
-    setAdding(false);
+    stopAdding();
+  };
+
+  const update = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    updateData((nextData) => {
+      const nextAccount = formEventToAccount(event);
+      nextAccount.id = editId;
+      const index = nextData.accounts.findIndex((account) => account.id === editId);
+      nextAccount.investments = nextData.accounts[index].investments;
+      nextData.accounts.splice(index, 1, nextAccount);
+    });
+    stopEditing();
+  };
+
+  const delet = () => {
+    updateData((nextData: DataType) => {
+      nextData.accounts = nextData.accounts.filter(
+        (account) => account.id !== editId
+      );
+    });
+    stopEditing();
   };
 
   return (
@@ -290,17 +298,18 @@ export const Accounts = () => {
               </thead>
               <tbody>
                 {sortedAccounts.map((account) => (
-                  <Account key={account.id} account={account} assets={assets} />
+                  <Account
+                    key={account.id}
+                    account={account}
+                    assets={assets}
+                    onEdit={() => startEditing(account.id)}
+                  />
                 ))}
               </tbody>
             </table>
           )}
           <footer>
-            {adding ? (
-              <AccountForm onSubmit={add} onCancel={() => setAdding(false)} />
-            ) : (
-              <button onClick={() => setAdding(true)}>add account</button>
-            )}
+            <button onClick={() => startAdding()}>add account</button>
           </footer>
         </div>
 
@@ -316,6 +325,18 @@ export const Accounts = () => {
             </p>
           </aside>
         )}
+
+        <dialog ref={addRef}>
+          <AccountForm onSubmit={add} onCancel={() => stopAdding()} />
+        </dialog>
+        <dialog ref={editRef}>
+          <AccountForm
+            account={sortedAccounts.find((a) => a.id === editId)}
+            onSubmit={update}
+            onCancel={() => stopEditing()}
+            onDelete={delet}
+          />
+        </dialog>
       </div>
     </section>
   );

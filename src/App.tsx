@@ -9,16 +9,17 @@ import { Taxes } from "./Taxes";
 import { RMDs } from "./RMDs";
 import { Expenses } from "./Expenses";
 import { Projections } from "./Projections";
+// import { Palette } from "./Palette";
 
 const API_ROOT = "https://api.twelvedata.com";
 const API_KEY = process.env.REACT_APP_TDKEY;
 
 if (!API_KEY) console.warn('Missing REACT_APP_TDKEY environment variable');
 
-const scheme = {
-  dark: { background: "6%", foreground: "85%" },
-  light: { background: "100%", foreground: "10%" },
-};
+// const scheme = {
+//   dark: { background: "6%", foreground: "85%" },
+//   light: { background: "100%", foreground: "10%" },
+// };
 
 function App() {
   const [data, setData] = useState(initialData);
@@ -27,24 +28,24 @@ function App() {
   const [pendingSymbols, setPendingSymbols] = useState<string[]>([]);
   const [prices, setPrices] = useState<PricesType>({});
 
-  // set color mode based on browser color scheme
-  useEffect(() => {
-    const setDarkScheme = (dark: boolean) => {
-      const mode = dark ? "dark" : "light";
-      document.documentElement.style.setProperty(
-        "--background-lightness",
-        scheme[mode].background
-      );
-      document.documentElement.style.setProperty(
-        "--foreground-lightness",
-        scheme[mode].foreground
-      );
-    };
-    setDarkScheme(window.matchMedia("(prefers-color-scheme: dark)").matches);
-    window
-      .matchMedia("(prefers-color-scheme: dark)")
-      .addEventListener("change", (event) => setDarkScheme(event.matches));
-  }, []);
+  // // set color mode based on browser color scheme
+  // useEffect(() => {
+  //   const setDarkScheme = (dark: boolean) => {
+  //     const mode = dark ? "dark" : "light";
+  //     document.documentElement.style.setProperty(
+  //       "--background-lightness",
+  //       scheme[mode].background
+  //     );
+  //     document.documentElement.style.setProperty(
+  //       "--foreground-lightness",
+  //       scheme[mode].foreground
+  //     );
+  //   };
+  //   setDarkScheme(window.matchMedia("(prefers-color-scheme: dark)").matches);
+  //   window
+  //     .matchMedia("(prefers-color-scheme: dark)")
+  //     .addEventListener("change", (event) => setDarkScheme(event.matches));
+  // }, []);
 
   // load saved data initially
   useEffect(() => {

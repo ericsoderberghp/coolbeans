@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useRef, useState } from "react";
 import { AppContext } from "./AppContext";
 import { TaxType, DataType } from "./Types";
 import { Rates } from "./Rates";
@@ -17,7 +17,7 @@ const formEventToTax = (event: React.FormEvent<HTMLFormElement>): TaxType => {
 
 type TaxFormProps = {
   tax?: TaxType;
-  onCancel: () =>  void;
+  onCancel: () => void;
   onDelete?: React.MouseEventHandler<HTMLButtonElement>;
   onSubmit: React.FormEventHandler<HTMLFormElement>;
 };
@@ -32,6 +32,12 @@ const TaxForm = (props: TaxFormProps) => {
   useCancelOnEsc(onCancel);
   return (
     <form onSubmit={onSubmit}>
+      <header>
+        <span className="kind">Tax</span>
+        <div className="controls">
+          <button type="button" onClick={onCancel}>cancel</button>
+        </div>
+      </header>
       <label>
         name
         <input name="name" type="text" defaultValue={tax.name} />
@@ -60,10 +66,8 @@ const TaxForm = (props: TaxFormProps) => {
         </ul>
       </label>
       <footer>
-        <span className="kind">Tax</span>
         <div className="controls">
           {onDelete && <button type="button" onClick={onDelete}>delete</button>}
-          <button type="button" onClick={onCancel}>cancel</button>
           <button type="submit">save</button>
         </div>
       </footer>
@@ -73,51 +77,20 @@ const TaxForm = (props: TaxFormProps) => {
 
 type TaxProps = {
   tax: TaxType;
+  onEdit: () => void;
 };
 
 export const Tax = (props: TaxProps) => {
-  const { tax } = props;
-  const id = tax.id;
-  const { updateData } = useContext(AppContext);
-  const [editing, setEditing] = useState(false);
-
-  const update = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    updateData((nextData) => {
-      const nextTax = formEventToTax(event);
-      nextTax.id = id;
-      nextTax.rates = tax.rates;
-      const index = nextData.taxes.findIndex((tax: TaxType) => tax.id === id);
-      nextData.taxes.splice(index, 1, nextTax);
-    });
-    setEditing(false);
-  };
-
-  const delet = () => {
-    updateData((nextData: DataType) => {
-      nextData.taxes = nextData.taxes.filter((tax: TaxType) => tax.id !== id);
-    });
-  };
+  const { tax, onEdit } = props;
 
   return (
     <li>
-      {editing ? (
-        <TaxForm
-          tax={tax}
-          onSubmit={update}
-          onCancel={() => setEditing(false)}
-          onDelete={delet}
-        />
-      ) : (
-        [
-          <header key="header">
-            <h3>{tax.name}</h3>
-            {tax.kind === "gains" ? "capital gains" : tax.kind}
-            <button onClick={() => setEditing(true)}>edit</button>
-          </header>,
-          <Rates key="rates" taxId={tax.id} />,
-        ]
-      )}
+      <header key="header">
+        <h3>{tax.name}</h3>
+        {tax.kind === "gains" ? "capital gains" : tax.kind}
+        <button onClick={onEdit}>edit</button>
+      </header>
+      <Rates key="rates" taxId={tax.id} />
     </li>
   );
 };
@@ -125,7 +98,23 @@ export const Tax = (props: TaxProps) => {
 export const Taxes = () => {
   const { data, updateData, showHelp } = useContext(AppContext);
   const [show, setShow] = useState(false);
-  const [adding, setAdding] = useState(false);
+  const [editId, setEditId] = useState(0);
+  const addRef = useRef<HTMLDialogElement>(null);
+  const editRef = useRef<HTMLDialogElement>(null);
+
+  const startAdding = () => addRef.current?.showModal();
+
+  const stopAdding = () => addRef.current?.close();
+
+  const startEditing = (id: number) => {
+    setEditId(id);
+    editRef.current?.showModal();
+  }
+
+  const stopEditing = () => {
+    setEditId(0);
+    editRef.current?.close();
+  }
 
   const add = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -135,7 +124,26 @@ export const Taxes = () => {
       tax.id = Math.max(0, ...nextData.taxes.map((tax: TaxType) => tax.id)) + 1;
       nextData.taxes.push(tax);
     });
-    setAdding(false);
+    stopAdding();
+  };
+
+  const update = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    updateData((nextData) => {
+      const nextTax = formEventToTax(event);
+      nextTax.id = editId;
+      const index = nextData.taxes.findIndex((tax: TaxType) => tax.id === editId);
+      nextTax.rates = nextData.taxes[index].rates;
+      nextData.taxes.splice(index, 1, nextTax);
+    });
+    stopEditing();
+  };
+
+  const delet = () => {
+    updateData((nextData: DataType) => {
+      nextData.taxes = nextData.taxes.filter((tax: TaxType) => tax.id !== editId);
+    });
+    stopEditing();
   };
 
   return (
@@ -151,15 +159,11 @@ export const Taxes = () => {
           {show && [
             <ul key="list">
               {data.taxes.map((tax) => (
-                <Tax tax={tax} />
+                <Tax tax={tax} onEdit={() => startEditing(tax.id)} />
               ))}
             </ul>,
             <footer key="footer">
-              {adding ? (
-                <TaxForm onSubmit={add} onCancel={() => setAdding(false)} />
-              ) : (
-                <button onClick={() => setAdding(true)}>add tax</button>
-              )}
+              <button onClick={() => startAdding()}>add tax</button>
             </footer>,
           ]}
         </div>
@@ -172,6 +176,18 @@ export const Taxes = () => {
             </p>
           </aside>
         )}
+
+        <dialog ref={addRef}>
+          <TaxForm onSubmit={add} onCancel={() => stopAdding()} />
+        </dialog>
+        <dialog ref={editRef}>
+          <TaxForm
+            tax={data.taxes.find((t) => t.id === editId)}
+            onSubmit={update}
+            onCancel={() => stopEditing()}
+            onDelete={delet}
+          />
+        </dialog>
       </div>
     </section>
   );

@@ -5,17 +5,24 @@
 }
 
 :root {
+  color-scheme: light dark;
   --size: 24px;
   --half-size: calc(var(--size) / 2);
   --quarter-size: calc(var(--size) / 4);
-  --background-lightness: 10%;
-  --foreground-lightness: 100%;
+  --background-color: light-dark(hsl(0 0 100), hsl(0 0 10));
+  --color: light-dark(hsl(0 0 6), hsl(0 0 90));
+  --border-color: light-dark(hsl(0 0 70), hsl(0 0 30));
+  --accent-color: light-dark(hsl(50, 100%, 85%), hsl(50, 100%, 20%));
+  --focus-color: light-dark(hsl(181, 80%, 40%), hsl(181, 80%, 25%));
+
+  --background-lightness: light-dark(10%, 85%);
+  --foreground-lightness: light-dark(100%, 6%);
 }
 
 body {
   font-family: 'courier new', courier, monospace;
-  background-color: hsl(0 0% var(--background-lightness));
-  color: hsl(0 0% var(--foreground-lightness));
+  background-color: var(--background-color);
+  color: var(--color);
 }
 
 main>header {
@@ -36,7 +43,7 @@ section {
   gap: 2em;
 }
 
-.contentContainer > aside {
+.contentContainer>aside {
   flex: 0 1 auto;
 }
 
@@ -81,29 +88,34 @@ input[type=file]::file-selector-button {
   appearance: none;
   font: inherit;
   padding: 0 var(--quarter-size);
-  color: hsl(0 0% var(--foreground-lightness) / 90%);
+  color: hsl(from var(--color) h s l / 70%);
   background: none;
-  border: 1px solid;
-  border-color: hsl(0 0% var(--foreground-lightness) / 20%);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--border-color);
   border-radius: 0.25em;
 }
 
 button:focus-visible,
 input:focus-visible {
-  outline: 2px solid hsl(181, 80%, 40%);;
+  outline: 2px solid var(--focus-color);
+  ;
 }
 
 button[type="submit"] {
-  background-color: hsl(0 0% var(--foreground-lightness) / 10%);
-  border-width: 2px;
+  background-color: var(--accent-color);
 }
 
 button:hover,
 .controls button:hover {
   cursor: pointer;
-  background-color: hsl(0 0% var(--foreground-lightness) / 80%);
-  color: hsl(0 0% var(--background-lightness));
-  border-color: hsl(0 0% var(--foreground-lightness) / 80%);
+  background-color: hsl(from var(--background-color) h s l);
+  border-color: hsl(from var(--accent-color) h s 50%);
+}
+
+button[type="submit"]:hover {
+  background-color: hsl(from var(--accent-color) h s 50% / 50%);
+  border-color: hsl(from var(--accent-color) h s 50%);
 }
 
 label {
@@ -115,12 +127,13 @@ label {
   white-space: nowrap;
 }
 
-label > input, label > select {
+label>input,
+label>select {
   justify-self: end;
   align-self: start;
 }
 
-label > div {
+label>div {
   padding-top: 6px;
 }
 
@@ -133,7 +146,7 @@ label p.help {
 .options {
   width: 12em;
   padding: var(--quarter-size) var(--half-size);
-  border: 1px solid hsl(0 0% var(--foreground-lightness) / 30%);
+  border: 1px solid var(--border-color);
   margin-bottom: -1px;
 }
 
@@ -155,7 +168,9 @@ select {
   font-size: inherit;
   background-color: inherit;
   color: inherit;
-  border: 1px solid hsl(0 0% var(--foreground-lightness) / 30%);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--border-color);
   border-radius: 0;
   padding: var(--quarter-size) var(--half-size);
   margin-bottom: -1px;
@@ -167,30 +182,34 @@ input:focus {
   z-index: 1;
 }
 
-input[type=number] {
+input[type="number"] {
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
 
-input[type=number]::-webkit-textfield-decoration-container {
+input[type="number"]::-webkit-textfield-decoration-container {
   gap: 0.5em;
 }
 
-input[type=checkbox] {
+input[type="checkbox"],
+input[type="radio"] {
   appearance: none;
   margin: 0;
   position: relative;
   margin-bottom: -1px;
   font: inherit;
-  height: 32px; /* empirical */
+  height: 32px;
+  /* empirical */
 }
 
-input[type=checkbox]:hover {
+input[type="checkbox"]:hover,
+input[type="radio"]:hover {
   cursor: pointer;
   background: hsl(0 0% var(--foreground-lightness) / 5%);
 }
 
-input[type="checkbox"]::after {
+input[type="checkbox"]::after,
+input[type="radio"]::after {
   content: '';
   position: absolute;
   left: 50%;
@@ -201,9 +220,10 @@ input[type="checkbox"]::after {
   transform: rotate(33deg);
 }
 
-input[type="checkbox"]:checked::after {
-  border-right: 3px solid hsl(0 0% var(--foreground-lightness));
-  border-bottom: 3px solid hsl(0 0% var(--foreground-lightness));
+input[type="checkbox"]:checked::after,
+input[type="radio"]:checked::after {
+  border-right: 3px solid var(--color);
+  border-bottom: 3px solid var(--color);
 }
 
 ul,
@@ -234,12 +254,12 @@ th {
 thead th {
   vertical-align: bottom;
   font-weight: 500;
-  border-bottom: 1px solid hsl(0 0% var(--foreground-lightness) / 20%);
+  border-bottom: 1px solid var(--border-color);
 }
 
-tbody > tr:not(:has(table.records)):not(:has(form)):hover,
-table.years tbody tr:not(.transactions):hover > th {
-  background-color: hsl(53, 100%, 95%, 1);
+tbody>tr:not(:has(table.records)):not(:has(form)):hover,
+table.years tbody tr:not(.transactions):hover>th {
+  background-color: hsl(from var(--accent-color) h s 50% / 20%);
 }
 
 tr.transactions {
@@ -250,11 +270,11 @@ table.records td,
 table.records th,
 table.years td,
 table.years th {
-  padding: 0 0.5em;
+  padding: 0.2em 0.5em;
 }
 
 tfoot td.total {
-  border-top: 1px solid hsl(0 0% var(--foreground-lightness) / 40%);
+  border-top: 1px solid var(--border-color);
 }
 
 td.number,
@@ -267,16 +287,29 @@ td.change {
   border-top: 1px solid hsl(0 100% 50% / 20%);
 }
 
+dialog {
+  padding: 0;
+  border: 1px solid var(--border-color);
+}
+
+dialog::backdrop {
+  background-color: light-dark(hsl(0 0 100 / 80%),hsl(0 0 0 / 80%));
+}
+
 form {
-  margin: var(--size) 0;
-  border: 1px solid hsl(0 0% var(--foreground-lightness) / 40%);
   padding: var(--size);
   width: fit-content;
 }
 
+form header {
+  padding-bottom: var(--size);
+  justify-content: space-between;
+  gap: var(--size);
+}
+
 form footer {
   padding-top: var(--size);
-  justify-content: space-between;
+  justify-content: end;
   gap: var(--size);
 }
 
@@ -292,21 +325,21 @@ footer div.controls button {
 
 .tableContainer {
   width: 100%;
-  overflow: auto;
-  max-height: calc(100vh - 1em);
+  /* overflow: auto; */
+  /* max-height: calc(100vh - 1em); */
 }
 
 table.years th:first-child {
   position: sticky;
   left: 0;
-  background-color: hsl(40 100% var(--background-lightness) / 90%);
+  background-color: hsl(from var(--background-color) h s l / 80%);
 }
 
 table.years thead th {
   position: sticky;
   top: 0;
   padding: .5em;
-  background-color: hsl(40 100% var(--background-lightness) / 90%);
+  background-color: hsl(from var(--background-color) h s l / 90%);
 }
 
 table.years thead th:first-child {

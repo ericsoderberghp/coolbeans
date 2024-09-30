@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useContext, useMemo, useRef, useState } from "react";
 import { AppContext } from "./AppContext";
 import { IncomeType, DataType } from "./Types";
 import { humanDate, humanMoney, useCancelOnEsc } from "./utils";
@@ -36,7 +36,13 @@ const IncomeForm = (props: IncomeFormProps) => {
   } = props;
   useCancelOnEsc(onCancel);
   return (
-    <form onSubmit={onSubmit}>
+    <form method="dialog" onSubmit={onSubmit}>
+      <header>
+        <span className="kind">Income</span>
+        <div className="controls">
+          <button type="button" onClick={onCancel}>cancel</button>
+        </div>
+      </header>
       <label>
         name
         <input name="name" type="text" defaultValue={income.name} />
@@ -54,10 +60,8 @@ const IncomeForm = (props: IncomeFormProps) => {
         <input name="stop" type="date" defaultValue={income.stop} />
       </label>
       <footer>
-        <span className="kind">Income</span>
         <div className="controls">
           {onDelete && <button type="button" onClick={onDelete}>delete</button>}
-          <button type="button" onClick={onCancel}>cancel</button>
           <button type="submit">save</button>
         </div>
       </footer>
@@ -67,12 +71,23 @@ const IncomeForm = (props: IncomeFormProps) => {
 
 export const Incomes = () => {
   const { data, updateData, showHelp, hideMoney } = useContext(AppContext);
-  const [adding, setAdding] = useState(false);
-  const [editing, setEditing] = useState(0);
+  const [editId, setEditId] = useState(0);
+  const addRef = useRef<HTMLDialogElement>(null);
+  const editRef = useRef<HTMLDialogElement>(null);
 
-  const startAdding = () => setAdding(!adding);
+  const startAdding = () => addRef.current?.showModal();
 
-  const startEditing = (id: number) => () => setEditing(id);
+  const stopAdding = () => addRef.current?.close();
+
+  const startEditing = (id: number) => {
+    setEditId(id);
+    editRef.current?.showModal();
+  }
+
+  const stopEditing = () => {
+    setEditId(0);
+    editRef.current?.close();
+  }
 
   const add = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -86,28 +101,29 @@ export const Incomes = () => {
         ) + 1;
       nextData.incomes.push(income);
     });
-    setAdding(false);
+    stopAdding();
   };
 
-  const update = (id: number) => (event: React.FormEvent<HTMLFormElement>) => {
+  const update = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     updateData((nextData) => {
       const income = formEventToIncome(event);
-      income.id = id;
+      income.id = editId;
       const index = nextData.incomes.findIndex(
-        (income: IncomeType) => income.id === id
+        (income: IncomeType) => income.id === editId
       );
       nextData.incomes.splice(index, 1, income);
     });
-    setEditing(0);
+    stopEditing();
   };
 
-  const delet = (id: number) => () => {
+  const delet = () => {
     updateData((nextData: DataType) => {
       nextData.incomes = nextData.incomes.filter(
-        (income: IncomeType) => income.id !== id
+        (income: IncomeType) => income.id !== editId
       );
     });
+    stopEditing();
   };
 
   const incomes = useMemo(() =>
@@ -138,44 +154,25 @@ export const Incomes = () => {
                 </tr>
               </thead>
               <tbody>
-                {incomes.map((income) => {
-                  const key: number = income.id;
-                  return (
-                    <tr key={key}>
-                      {editing === key ? (
-                        <td colSpan={5}>
-                          <IncomeForm
-                            income={income}
-                            onSubmit={update(key)}
-                            onCancel={() => setEditing(0)}
-                            onDelete={delet(key)}
-                          />
-                        </td>
-                      ) : (
-                        [
-                          <th key="name" role="rowheader">{income.name}</th>,
-                          <td key="value" className="number">
-                            {humanMoney(income.value || 0, hideMoney)}
-                          </td>,
-                          <td key="start">{humanDate(income.start)}</td>,
-                          <td key="stop">{humanDate(income.stop)}</td>,
-                          <td key="controls">
-                            <button onClick={startEditing(key)}>edit</button>
-                          </td>,
-                        ]
-                      )}
-                    </tr>
-                  );
-                })}
+                {incomes.map((income) => (
+                  <tr key={income.id}>
+                    <th key="name" role="rowheader">{income.name}</th>
+                    <td key="value" className="number">
+                      {humanMoney(income.value || 0, hideMoney)}
+                    </td>
+                    <td key="start">{humanDate(income.start)}</td>
+                    <td key="stop">{humanDate(income.stop)}</td>
+                    <td key="controls">
+                      <button onClick={() => startEditing(income.id)}>edit</button>
+                    </td>
+                  </tr>
+                )
+                )}
               </tbody>
             </table>
           )}
           <footer>
-            {adding ? (
-              <IncomeForm onSubmit={add} onCancel={() => setAdding(false)} />
-            ) : (
-              <button onClick={startAdding}>add income</button>
-            )}
+            <button onClick={startAdding}>add income</button>
           </footer>
         </div>
 
@@ -189,6 +186,18 @@ export const Incomes = () => {
             </p>
           </aside>
         )}
+
+        <dialog ref={addRef}>
+          <IncomeForm onSubmit={add} onCancel={() => stopAdding()} />
+        </dialog>
+        <dialog ref={editRef}>
+          <IncomeForm
+            income={incomes.find((i) => i.id === editId)}
+            onSubmit={update}
+            onCancel={() => stopEditing()}
+            onDelete={delet}
+          />
+        </dialog>
       </div>
     </section>
   );
